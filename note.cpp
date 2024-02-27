@@ -1,0 +1,1175 @@
+// note.cpp : 응용 프로그램에 대한 진입점을 정의합니다.
+//
+
+#include "stdafx.h"
+#include "note.h"
+#include "tchar.h"
+#include <iostream>
+#define MAX_LOADSTRING 100000
+
+// 전역 변수:
+HINSTANCE hInst;								// 현재 인스턴스입니다.
+TCHAR szTitle[MAX_LOADSTRING] = _T("NotePad");					// 제목 표시줄 텍스트입니다.
+TCHAR szWindowClass[MAX_LOADSTRING] = _T("NewWin");			// 기본 창 클래스 이름입니다.
+int xPointer = 0;
+int yPointer = 0;
+int CapsLock = 1;
+int langu = 1;
+int ime =1;
+HWND hWnd;
+wchar_t Cstr[10];
+int ime_Counter = 0;
+
+struct TextData {
+    wchar_t* text;
+    int count;
+};
+TextData* texts; // 텍스트 데이터 배열
+
+int textCount = 0; // 현재 텍스트의 개수
+int pointerCount =0;
+int focusingFlag =1;
+int InsertFlag = 1;
+int MAX_yPointer =0;
+
+// 이 코드 모듈에 들어 있는 함수의 정방향 선언입니다.
+ATOM				MyRegisterClass(HINSTANCE hInstance);
+BOOL				InitInstance(HINSTANCE, int);
+LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
+
+int APIENTRY _tWinMain(HINSTANCE hInstance,
+                     HINSTANCE hPrevInstance,
+                     LPTSTR    lpCmdLine,
+                     int       nCmdShow)
+{
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
+
+ 	// TODO: 여기에 코드를 입력합니다.
+	MSG msg;
+	HACCEL hAccelTable;
+
+	// 전역 문자열을 초기화합니다.
+	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+	LoadString(hInstance, IDC_NOTE, szWindowClass, MAX_LOADSTRING);
+	MyRegisterClass(hInstance);
+
+	// 응용 프로그램 초기화를 수행합니다.
+	if (!InitInstance (hInstance, nCmdShow))
+	{
+		return FALSE;
+	}
+
+	
+
+	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_NOTE));
+
+	// 기본 메시지 루프입니다.
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
+	return (int) msg.wParam;
+}
+
+
+
+//
+//  함수: MyRegisterClass()
+//
+//  목적: 창 클래스를 등록합니다.
+//
+//  설명:
+//
+//    Windows 95에서 추가된 'RegisterClassEx' 함수보다 먼저
+//    해당 코드가 Win32 시스템과 호환되도록
+//    하려는 경우에만 이 함수를 사용합니다. 이 함수를 호출해야
+//    해당 응용 프로그램에 연결된
+//    '올바른 형식의' 작은 아이콘을 가져올 수 있습니다.
+//
+ATOM MyRegisterClass(HINSTANCE hInstance)
+{
+	WNDCLASSEX wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEX);
+
+	wcex.style			= CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc	= WndProc;
+	wcex.cbClsExtra		= 0;
+	wcex.cbWndExtra		= 0;
+	wcex.hInstance		= hInstance;
+	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_NOTE));
+	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
+	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_NOTE);
+	wcex.lpszClassName	= szWindowClass;
+	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+	return RegisterClassEx(&wcex);
+}
+
+//
+//   함수: InitInstance(HINSTANCE, int)
+//
+//   목적: 인스턴스 핸들을 저장하고 주 창을 만듭니다.
+//
+//   설명:
+//
+//        이 함수를 통해 인스턴스 핸들을 전역 변수에 저장하고
+//        주 프로그램 창을 만든 다음 표시합니다.
+//
+
+BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+{
+   
+
+  // long WinStyle; // 스타일 저장할 목적
+
+   hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
+
+   texts = new TextData[MAX_LOADSTRING];
+
+   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW | WS_HSCROLL | WS_VSCROLL,
+      CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,CW_USEDEFAULT , NULL, NULL, hInstance, NULL);
+
+  // WinStyle = GetWindowLong(hWnd,GWL_STYLE); // 스타일 받아오기.
+   //WinStyle = WinStyle | WS_HSCROLL; // 스크롤 추가
+   //SetWindowLong(hWnd, GWL_STYLE,WinStyle); // 스타일 적용
+
+   if (!hWnd)
+   {
+      return FALSE;
+   }
+
+
+
+   if (!SetWindowTextA (hWnd, "메모장")) // 타이틀 제목----------------------------------------------------------
+	{
+		return FALSE;
+	}
+
+   ShowWindow(hWnd, nCmdShow);
+   UpdateWindow(hWnd);
+
+   return TRUE;
+}
+
+//
+//  함수: WndProc(HWND, UINT, WPARAM, LPARAM)
+//
+//  목적: 주 창의 메시지를 처리합니다.
+//
+//  WM_COMMAND	- 응용 프로그램 메뉴를 처리합니다.
+//  WM_PAINT	- 주 창을 그립니다.
+//  WM_DESTROY	- 종료 메시지를 게시하고 반환합니다.
+//
+//
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	int wmId, wmEvent;
+	PAINTSTRUCT ps;
+	HDC hdc;
+	int len;
+	hdc = GetDC(hWnd);
+
+	{
+	
+	
+	}
+
+
+
+	if(xPointer <0)
+	{
+		xPointer = 0;
+	}
+	if(pointerCount<0) {
+		pointerCount =0;
+	}
+	ShowCaret(hWnd);
+	switch (message)
+	{
+		case WM_CREATE:{
+			CreateCaret(hWnd,NULL,1,17);
+			ShowCaret(hWnd);
+			break;
+				   }
+		case WM_IME_COMPOSITION:{
+			HideCaret(hWnd);
+			HIMC Himc = ImmGetContext(hWnd);
+			hdc = GetDC(hWnd);
+			
+			if(lParam & GCS_RESULTSTR){
+				if((len = ImmGetCompositionString(Himc,GCS_RESULTSTR,NULL,0))>0){
+					ime_Counter = 0;
+					ImmGetCompositionString(Himc,GCS_RESULTSTR,Cstr,len);
+					Cstr[len] = L'\0';
+					TextOut(hdc, xPointer, yPointer, Cstr, 1);
+					int xPt = xPointer + 15;
+					SetCaretPos(xPt, yPointer);
+					xPointer += 15;
+					ime = 1;
+
+					if(InsertFlag == 1 && pointerCount != textCount){
+						for(int i = textCount; i> pointerCount;i--){
+							if(i ==0) break;
+							texts[i].text = texts[i-1].text;
+							texts[i].count = texts[i-1].count;
+						}
+					}
+
+					if(InsertFlag == -1){
+					if(pointerCount != textCount){}
+					else{texts[pointerCount].text = new wchar_t[2];}
+				
+					}
+					else{					
+						texts[pointerCount].text = new wchar_t[2];}
+
+					wcscpy(texts[pointerCount].text, Cstr);
+					texts[pointerCount].count = 15;
+					if(InsertFlag == -1 && textCount != pointerCount){}
+					else{
+						textCount++;}
+					pointerCount++;
+					if(InsertFlag  ==1&& pointerCount < textCount){
+					int x= 0;
+					int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+			
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+					if(i>=pointerCount-1){
+						TextOut(hdc, x, y, texts[i].text, 1);}
+					x += 15;
+					continue;
+					}
+					if(i>=pointerCount-1){
+						TextOut(hdc, x, y, texts[i].text, 1);}
+					x += 10;
+					}
+					
+					}
+				}
+			}
+			else if(lParam & GCS_COMPSTR){
+				ime_Counter++;
+				if(ime == 1) 
+					ime =  (-1);
+				len =ImmGetCompositionString(Himc,GCS_COMPSTR,NULL,0);
+				ImmGetCompositionString(Himc,GCS_COMPSTR,Cstr,len);
+				Cstr[len] = L'\0';
+				int xPt = xPointer + 15;
+				if(Cstr[0] != L'\0'){
+				TextOut(hdc, xPointer, yPointer, Cstr, 1);
+				}
+				else {
+				TextOut(hdc, xPointer, yPointer, L"    ", 4);
+				xPt -= 15;
+				}
+				
+
+
+
+
+				ShowCaret(hWnd);
+				SetCaretPos(xPt, yPointer);
+				
+			}
+			ShowCaret(hWnd);
+			break;
+		}
+		
+		
+		case WM_CHAR:
+		{
+		SetCaretPos(xPointer,yPointer);	
+		HDC hdc = GetDC(hWnd); // 윈도우의 클라이언트 영역에 대한 출력 장치 컨텍스트 핸들을 가져옵니다.
+		 HideCaret(hWnd);
+
+	
+		if (message != WM_IME_COMPOSITION){
+			switch (wParam)
+			{
+
+			case VK_RETURN:{
+				HideCaret(hWnd);
+            yPointer += 17;
+            xPointer = 0;
+			if(MAX_yPointer <yPointer){
+				MAX_yPointer = yPointer;}
+
+			if(InsertFlag == 1 && pointerCount < textCount){
+				for(int i=textCount; i>pointerCount;i--){
+					
+					texts[i].text = texts[i-1].text;
+					texts[i].count = texts[i-1].count;
+				}
+			}
+            texts[pointerCount].text = new wchar_t[2];
+            texts[pointerCount].text[0] = L'\0';
+            texts[pointerCount].text[1] = L'\0';
+            texts[pointerCount].count = 0; 
+            textCount++;
+			pointerCount++;
+			InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+			int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+
+					}
+						   }
+					SetCaretPos(xPointer,yPointer);
+			ShowCaret(hWnd);
+            break;
+
+			
+
+
+			case VK_BACK:{
+				HideCaret(hWnd);
+				if(pointerCount == 0){
+					break;
+				ShowCaret(hWnd);
+				}
+				if (textCount > 0 && texts[pointerCount - 1].count == 15) { //이전입력이 글자일때
+				/*
+				if(ime == -1 && ime_Counter>0){ 
+					ime_Counter = ime_Counter -1;
+					break;}
+				*/
+				
+				free(texts[pointerCount - 1].text);
+				texts[pointerCount - 1].count =0;
+                textCount--;
+				pointerCount--;
+                xPointer -= 15;
+                TextOut(hdc, xPointer, yPointer, L"    ", 4);
+
+				if(pointerCount < textCount){
+				for(int i=pointerCount; i<textCount;i++){
+					if(!texts[i+1].text)break;
+					texts[i].text = texts[i+1].text;
+					texts[i].count = texts[i+1].count;
+				}
+				texts[textCount+1].text = NULL;
+			}
+
+
+				{
+				
+					InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+				
+				}
+				SetCaretPos(xPointer,yPointer);
+			ShowCaret(hWnd);
+				break;
+            }
+				else if (textCount > 0 && texts[pointerCount - 1].count == 0) { //이전 입력이 엔터일때
+                yPointer -= 17;
+                xPointer = 0; // 변경된 부분
+                free(texts[pointerCount - 1].text);
+                textCount--;
+				pointerCount--;
+				
+				
+				if(pointerCount < textCount){
+				for(int i=pointerCount; i<textCount;i++){
+					if(!texts[i+1].text)break;
+					texts[i].text = texts[i+1].text;
+					texts[i].count = texts[i+1].count;
+				}
+				texts[textCount+1].text = NULL;
+			}
+				
+				{
+				
+				InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+
+				}
+
+				SetCaretPos(xPointer,yPointer);
+			ShowCaret(hWnd);
+
+				break;
+            }
+				else if(textCount >0 && texts[pointerCount-1].count == 10){
+				free(texts[pointerCount - 1].text);
+                textCount--;
+				pointerCount--;
+                xPointer -= 10;
+				TextOut(hdc, xPointer, yPointer, L"   ", 3);
+				
+				
+				if(pointerCount < textCount){
+				for(int i=pointerCount; i<textCount;i++){
+					if(!texts[i+1].text)break;
+					texts[i].text = texts[i+1].text;
+					texts[i].count = texts[i+1].count;
+				}
+				texts[textCount+1].text = NULL;
+			}
+				
+				
+				{
+				
+				InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+				}
+				SetCaretPos(xPointer,yPointer);
+			ShowCaret(hWnd);
+				break;
+			}
+            
+							 }
+
+
+
+
+
+        
+			case VK_HANGUL:
+			langu = langu *(-1);
+			break;
+		
+			 default:
+			
+            wchar_t ch = (wchar_t)wParam;          //눌린 키 정보
+            wchar_t str[2] = { ch, L'\0' };        //눌린키 + \0 (문자열의 끝을 표시) 하는 정보로 바꿈
+
+            if (CapsLock < 0) {
+                CharUpperW(str);
+            }
+            else {
+                CharLowerW(str);
+            }
+
+            TextOut(hdc, xPointer, yPointer, str, 1);
+            xPointer += 10;
+
+
+			
+
+
+			if(InsertFlag ==1 && pointerCount < textCount){
+				for(int i=textCount; i>pointerCount; i--){
+					if(i ==0)break;
+					texts[i].text = texts[i-1].text;
+					texts[i].count = texts[i-1].count;
+				}
+			}
+			if(InsertFlag == -1){
+				if(pointerCount != textCount){}
+				else{texts[pointerCount].text = new wchar_t[2];}
+				
+			}
+			else{
+				texts[pointerCount].text = new wchar_t[2];}
+            wcscpy(texts[pointerCount].text, str);
+            texts[pointerCount].count = 10;
+			if(InsertFlag == -1 && textCount != pointerCount){}
+			else{
+				textCount++;}
+			pointerCount++;
+			if(InsertFlag == 1&& pointerCount < textCount){
+			InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+
+			}
+            break;
+		}
+		SetCaretPos(xPointer, yPointer);
+		ShowCaret(hWnd);
+
+		ReleaseDC(hWnd, hdc);
+		}
+		break; 
+}
+		case WM_KEYDOWN:{
+			
+			switch(wParam){
+
+			case VK_CAPITAL:
+					CapsLock = CapsLock * (-1);
+					break;
+			case VK_LEFT:{
+					if(pointerCount ==0){break;}
+					if(texts[pointerCount-1].count == 0 && texts[pointerCount-1].text[0] == '\0'){break;}
+					HideCaret(hWnd);
+					pointerCount--; 
+					if(textCount > 0 &&texts[pointerCount].count == 0 && texts[pointerCount].text[0] == '\0'){
+				
+					}
+					else{
+						xPointer -= texts[pointerCount].count;
+						
+					}
+					SetCaretPos(xPointer,yPointer);
+					ShowCaret(hWnd);
+					break;
+
+
+					{//rr
+					InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+
+					}//rr
+
+
+
+				}
+			
+
+				 break;
+
+
+				
+
+
+			case VK_RIGHT:{
+					if(pointerCount ==textCount){break;}
+					if(texts[pointerCount].count == 0 && texts[pointerCount].text[0] == '\0'){break;}
+					HideCaret(hWnd);
+					
+					if(textCount > 0 &&texts[pointerCount+1].count == 0 && texts[pointerCount+1].text[0] == '\0'){
+						pointerCount++;
+						xPointer += texts[pointerCount-1].count;
+					}
+					else{
+						pointerCount++;
+						xPointer += texts[pointerCount-1].count;
+						
+					}
+					{//rr
+					InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+
+					}//rr
+
+					SetCaretPos(xPointer,yPointer);
+					ShowCaret(hWnd);
+					break;
+				}
+			case VK_UP:{
+				if(yPointer == 0){break;}
+				
+				HideCaret(hWnd);
+				yPointer -= 17;
+				int x=0;
+				int y=0;
+
+				for(int i=0;i<textCount;i++){
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x =0;
+					y += 17;
+					}
+					else{
+					x += texts[i].count;
+					}
+					if(xPointer == x && yPointer == y){
+						pointerCount = i+1;
+						SetCaretPos(xPointer,yPointer);
+						ShowCaret(hWnd);
+						break;
+					}
+				}
+				if(xPointer == x && yPointer == y){
+				SetCaretPos(xPointer,yPointer);
+				ShowCaret(hWnd);
+				break;
+				}
+				else{
+					x=0;
+					y=0;
+					for(int i=0;i<textCount;i++){
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x =0;
+					y += 17;
+					}
+					else{
+					x += texts[i].count;
+					}
+					if(texts[i+1].count == 0 && texts[i+1].text[0] == '\0' && yPointer == y){
+						pointerCount = i+1;
+						xPointer += texts[pointerCount].count;
+						xPointer = x;
+
+						SetCaretPos(xPointer,yPointer);
+						ShowCaret(hWnd);
+
+						break;
+					}
+					}
+				}
+				
+
+
+				{//rr
+					InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+
+					}//rr
+
+
+
+				
+				}
+				break;
+
+				case VK_DOWN:{
+				if(yPointer == MAX_yPointer){break;}
+				
+				HideCaret(hWnd);
+
+				yPointer += 17;
+				int x=0;
+				int y=0;
+				int fff = 1;
+				for(int i=0;i<textCount;i++){
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x =0;
+					y += 17;
+					}
+					else{
+					x += texts[i].count;
+					}
+					if(xPointer == x && yPointer == y){
+						pointerCount = i+1;
+						
+						SetCaretPos(xPointer,yPointer);
+						ShowCaret(hWnd);
+						break;
+					}
+				}
+				if(xPointer == x && yPointer == y){
+				
+				}
+				else{
+					fff = -1;
+					x=0;
+					y=0;
+					for(int i=0;i<textCount;i++){
+
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x =0;
+					y += 17;
+					}
+					else{
+					x += texts[i].count;
+					}
+					if(texts[i+1].count ==0 && texts[i+1].text[0] == '\0' && yPointer == y){
+						pointerCount = i+1;
+						if(pointerCount > textCount){pointerCount = textCount;}
+						xPointer = x ;
+						SetCaretPos(xPointer,yPointer);
+						ShowCaret(hWnd);
+						fff = 1;
+						break;
+					}
+					pointerCount = i;
+						xPointer = x;
+						
+					}
+
+				}
+				if(fff == -1&& pointerCount == textCount-1){
+					pointerCount += 1;
+					
+					
+				}
+				
+
+
+				{//rr
+					InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc, x, y, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+
+					}//rr
+
+
+
+				SetCaretPos(xPointer,yPointer);
+				ShowCaret(hWnd);
+				}
+							 
+				case VK_HOME:{
+					HideCaret(hWnd);
+					int Found =0;
+					int x=0;
+					int y=0;
+					for(int i=0;i<textCount;i++){
+
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					Found = 1;
+					x =0;
+					y += 17;
+					if(y == yPointer){
+					 xPointer = x;
+					 pointerCount = i+1;
+					 break;
+					}
+					}
+					else{
+					x += texts[i].count;
+					}
+					
+					
+						
+					}
+					if(Found == 0){
+					pointerCount = 0;
+					xPointer = 0;
+					}
+					SetCaretPos(xPointer,yPointer);
+					ShowCaret(hWnd);
+							 }
+							 break;
+				case VK_END:{
+							HideCaret(hWnd);
+							for(int i=0;i<textCount;i++){
+							if(pointerCount ==textCount){break;}
+							
+							if(textCount ==0)break;
+							if(texts[pointerCount].count == 0 && texts[pointerCount].text[0] == '\0'){break;}
+							HideCaret(hWnd);
+					
+							if(textCount > 0 &&texts[pointerCount+1].count == 0 && texts[pointerCount+1].text[0] == '\0'){
+							pointerCount++;
+						xPointer += texts[pointerCount-1].count;
+					}
+					else{
+						pointerCount++;
+						xPointer += texts[pointerCount-1].count;
+						
+					}
+					SetCaretPos(xPointer,yPointer);
+					ShowCaret(hWnd);
+								
+							}
+							SetCaretPos(xPointer,yPointer);
+						ShowCaret(hWnd);
+							}break;
+				case VK_INSERT:{
+							InsertFlag *= -1;
+							break;
+							   }
+				default:{}
+						}
+						
+						}
+
+	case WM_COMMAND:
+		wmId    = LOWORD(wParam);
+		wmEvent = HIWORD(wParam);
+		// 메뉴 선택을 구문 분석합니다.
+		switch (wmId)
+		{
+		case IDM_ABOUT:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+			break;
+		case IDM_EXIT:
+			DestroyWindow(hWnd);
+			break;
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
+		}
+		break;
+	case WM_SIZE:{
+		int x= 0;
+		int y=0;
+            HDC hdc = GetDC(hWnd);
+		for(int i =0; i< textCount; i++) {
+			
+			if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+			 x= 0;
+			 y += 17;
+			 continue;
+			}
+			if(textCount >0 && texts[i].count == 15){
+			 TextOut(hdc, x, y, texts[i].text, 1);
+			x += 15;
+			continue;
+			}
+            TextOut(hdc, x, y, texts[i].text, 1);
+			x += 10;
+        }
+        ReleaseDC(hWnd, hdc);
+				 }
+		break;
+	case WM_SETFOCUS:
+		{
+			hdc = GetDC(hWnd);
+			CreateCaret(hWnd,NULL,1, 17);
+			ShowCaret(hWnd);
+			SetCaretPos(xPointer,yPointer);
+		}
+		break;
+
+	case WM_KILLFOCUS:
+		{
+			hdc = GetDC(hWnd);
+			HideCaret(hWnd);
+			DestroyCaret();
+		}
+		break;
+	case WM_PAINT:
+	{
+			
+		hdc = BeginPaint(hWnd,&ps);
+		SetCaretPos(xPointer,yPointer);
+		EndPaint(hWnd,&ps);
+		break;
+
+	}
+	break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
+
+// 정보 대화 상자의 메시지 처리기입니다.
+INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		return (INT_PTR)TRUE;
+
+	case WM_COMMAND:
+		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		{
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+		break;
+	}
+	return (INT_PTR)FALSE;
+}
