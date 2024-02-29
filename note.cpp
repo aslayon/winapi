@@ -19,6 +19,9 @@ int ime =1;
 HWND hWnd;
 wchar_t Cstr[10];
 int ime_Counter = 0;
+int scrollH = 0;
+int scrollV = 0;
+
 
 struct TextData {
     wchar_t* text;
@@ -177,7 +180,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	HDC hdc;
 	int len;
 	hdc = GetDC(hWnd);
-
+	if(scrollH<0){
+	scrollH =0;
+	}
 	{
 	
 	
@@ -210,9 +215,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					ime_Counter = 0;
 					ImmGetCompositionString(Himc,GCS_RESULTSTR,Cstr,len);
 					Cstr[len] = L'\0';
-					TextOut(hdc, xPointer, yPointer, Cstr, 1);
+					TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, Cstr, 1);
 					int xPt = xPointer + 15;
-					SetCaretPos(xPt, yPointer);
+					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 					xPointer += 15;
 					ime = 1;
 
@@ -251,12 +256,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					if(textCount >0 && texts[i].count == 15){
 					if(i>=pointerCount-1){
-						TextOut(hdc, x, y, texts[i].text, 1);}
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);}
 					x += 15;
 					continue;
 					}
 					if(i>=pointerCount-1){
-						TextOut(hdc, x, y, texts[i].text, 1);}
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);}
 					x += 10;
 					}
 					
@@ -272,10 +277,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				Cstr[len] = L'\0';
 				int xPt = xPointer + 15;
 				if(Cstr[0] != L'\0'){
-				TextOut(hdc, xPointer, yPointer, Cstr, 1);
+				TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, Cstr, 1);
 				}
 				else {
-				TextOut(hdc, xPointer, yPointer, L"    ", 4);
+				TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"    ", 4);
 				xPt -= 15;
 				}
 				
@@ -284,7 +289,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 				ShowCaret(hWnd);
-				SetCaretPos(xPt, yPointer);
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 				
 			}
 			ShowCaret(hWnd);
@@ -294,7 +299,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		
 		case WM_CHAR:
 		{
-		SetCaretPos(xPointer,yPointer);	
+		SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);	
 		HDC hdc = GetDC(hWnd); // 윈도우의 클라이언트 영역에 대한 출력 장치 컨텍스트 핸들을 가져옵니다.
 		 HideCaret(hWnd);
 
@@ -339,7 +344,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(textCount >0 && texts[i].count == 15){
 				
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -349,7 +354,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -360,7 +365,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 					}
 						   }
-					SetCaretPos(xPointer,yPointer);
+					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 			ShowCaret(hWnd);
             break;
 
@@ -385,7 +390,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 textCount--;
 				pointerCount--;
                 xPointer -= 15;
-                TextOut(hdc, xPointer, yPointer, L"    ", 4);
+                TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"    ", 4);
 
 				if(pointerCount < textCount){
 				for(int i=pointerCount; i<textCount;i++){
@@ -415,7 +420,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(textCount >0 && texts[i].count == 15){
 				
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -425,7 +430,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -438,7 +443,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				
 				}
-				SetCaretPos(xPointer,yPointer);
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 			ShowCaret(hWnd);
 				break;
             }
@@ -477,7 +482,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(textCount >0 && texts[i].count == 15){
 				
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -487,7 +492,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -501,7 +506,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				}
 
-				SetCaretPos(xPointer,yPointer);
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 			ShowCaret(hWnd);
 
 				break;
@@ -511,7 +516,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 textCount--;
 				pointerCount--;
                 xPointer -= 10;
-				TextOut(hdc, xPointer, yPointer, L"   ", 3);
+				TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"   ", 3);
 				
 				
 				if(pointerCount < textCount){
@@ -542,7 +547,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(textCount >0 && texts[i].count == 15){
 				
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -552,7 +557,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -564,7 +569,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				
 
 				}
-				SetCaretPos(xPointer,yPointer);
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 			ShowCaret(hWnd);
 				break;
 			}
@@ -592,7 +597,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 CharLowerW(str);
             }
 
-            TextOut(hdc, xPointer, yPointer, str, 1);
+            TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, str, 1);
             xPointer += 10;
 
 
@@ -619,7 +624,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			else{
 				textCount++;}
 			pointerCount++;
-			if(InsertFlag == 1&& pointerCount < textCount){
+			
+			
+			
+			{
 			InvalidateRect(hWnd,NULL,TRUE);
             UpdateWindow(hWnd);
 
@@ -636,7 +644,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(textCount >0 && texts[i].count == 15){
 				
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -646,7 +654,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -661,13 +669,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
             break;
 		}
-		SetCaretPos(xPointer, yPointer);
+		SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 		ShowCaret(hWnd);
 
 		ReleaseDC(hWnd, hdc);
 		}
 		break; 
 }
+
+
 		case WM_KEYDOWN:{
 			
 			switch(wParam){
@@ -687,7 +697,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						xPointer -= texts[pointerCount].count;
 						
 					}
-					SetCaretPos(xPointer,yPointer);
+					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 					ShowCaret(hWnd);
 					break;
 
@@ -709,7 +719,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(textCount >0 && texts[i].count == 15){
 				
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -719,7 +729,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -775,7 +785,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(textCount >0 && texts[i].count == 15){
 				
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -785,7 +795,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -799,7 +809,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 					}//rr
 
-					SetCaretPos(xPointer,yPointer);
+					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 					ShowCaret(hWnd);
 					break;
 				}
@@ -821,13 +831,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					if(xPointer == x && yPointer == y){
 						pointerCount = i+1;
-						SetCaretPos(xPointer,yPointer);
+						SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 						ShowCaret(hWnd);
 						break;
 					}
 				}
 				if(xPointer == x && yPointer == y){
-				SetCaretPos(xPointer,yPointer);
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 				ShowCaret(hWnd);
 				break;
 				}
@@ -847,7 +857,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						xPointer += texts[pointerCount].count;
 						xPointer = x;
 
-						SetCaretPos(xPointer,yPointer);
+						SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 						ShowCaret(hWnd);
 
 						break;
@@ -874,7 +884,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(textCount >0 && texts[i].count == 15){
 				
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -884,7 +894,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -924,7 +934,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(xPointer == x && yPointer == y){
 						pointerCount = i+1;
 						
-						SetCaretPos(xPointer,yPointer);
+						SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 						ShowCaret(hWnd);
 						break;
 					}
@@ -949,7 +959,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						pointerCount = i+1;
 						if(pointerCount > textCount){pointerCount = textCount;}
 						xPointer = x ;
-						SetCaretPos(xPointer,yPointer);
+						SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 						ShowCaret(hWnd);
 						fff = 1;
 						break;
@@ -985,7 +995,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if(textCount >0 && texts[i].count == 15){
 				
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -995,7 +1005,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					
 						
-						TextOut(hdc, x, y, texts[i].text, 1);
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
 					
@@ -1011,7 +1021,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 
-				SetCaretPos(xPointer,yPointer);
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 				ShowCaret(hWnd);
 				}
 							 
@@ -1027,7 +1037,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					x =0;
 					y += 17;
 					if(y == yPointer){
-					 xPointer = x;
+					 xPointer = x- (scrollV) * (-15);
 					 pointerCount = i+1;
 					 break;
 					}
@@ -1040,38 +1050,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						
 					}
 					if(Found == 0){
-					pointerCount = 0;
+					pointerCount = 0- (scrollV) * (-15);
 					xPointer = 0;
 					}
-					SetCaretPos(xPointer,yPointer);
+					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 					ShowCaret(hWnd);
 							 }
 							 break;
 				case VK_END:{
-							HideCaret(hWnd);
-							for(int i=0;i<textCount;i++){
-							if(pointerCount ==textCount){break;}
-							
-							if(textCount ==0)break;
-							if(texts[pointerCount].count == 0 && texts[pointerCount].text[0] == '\0'){break;}
-							HideCaret(hWnd);
-					
-							if(textCount > 0 &&texts[pointerCount+1].count == 0 && texts[pointerCount+1].text[0] == '\0'){
-							pointerCount++;
-						xPointer += texts[pointerCount-1].count;
+						HideCaret(hWnd);
+						int x=0;
+						int y=0;
+						int Found =0;
+					for(int i=0;i<textCount;i++){
+
+					if(textCount > 0 & &texts[i].count == 0 && texts[i].text[0] == '\0'){
+					 if(y == yPointer){
+						Found = 1;
+					 xPointer = x;
+					 pointerCount = i;
+					 break;
 					}
+					 else{
+					x =0;
+					y += 17;
+					 }
+					}
+
 					else{
-						pointerCount++;
-						xPointer += texts[pointerCount-1].count;
-						
+					x += texts[i].count;
 					}
-					SetCaretPos(xPointer,yPointer);
-					ShowCaret(hWnd);
 								
 							}
-							SetCaretPos(xPointer,yPointer);
+					if(Found !=1){
+					xPointer =x- (scrollV) * (-15);
+					pointerCount = textCount;
+					}
+							SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 						ShowCaret(hWnd);
 							}break;
+
 				case VK_INSERT:{
 							InsertFlag *= -1;
 							break;
@@ -1080,6 +1098,186 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						}
 						
 						}
+case WM_VSCROLL:
+    // 수직 스크롤바 메시지 처리
+{
+    SCROLLINFO si;
+    int yPos, nScrollCode;
+
+    // 현재 스크롤 정보를 가져옵니다.
+    ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_VERT, &si);
+
+    // 스크롤 이벤트를 처리합니다.
+    nScrollCode = LOWORD(wParam);
+    switch (LOWORD(wParam))
+    {
+        case SB_LINEUP:
+			if(scrollH ==0) break;
+            si.nPos -= 1;
+			scrollH--;
+			yPointer +=17;
+            break;
+
+        case SB_LINEDOWN:
+            si.nPos += 1;
+			scrollH++;
+			yPointer -= 17;
+            break;
+
+        
+
+        default:
+            break;
+    }
+
+    // 스크롤 위치가 최소값보다 작거나 최대값보다 크면 조정합니다.
+    si.nPos = max(0, min(si.nPos, si.nMax - si.nPage));
+
+    // 새로운 스크롤 위치를 설정합니다.
+    SetScrollPos(hWnd, SB_VERT, si.nPos, TRUE);
+
+    // 화면을 다시 그립니다.
+    
+	{
+			InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+				
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+						
+							TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+							TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+
+			}
+
+
+    break;
+}
+
+
+case WM_HSCROLL:
+{
+    SCROLLINFO si;
+    int xPos, nScrollCode;
+
+    // 현재 수평 스크롤 정보를 가져옵니다.
+    ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+    // 스크롤 이벤트를 처리합니다.
+    nScrollCode = LOWORD(wParam);
+    switch (LOWORD(wParam))
+    {
+        case SB_LINELEFT:
+			if(scrollV ==0) break;
+            si.nPos -= 1;
+			scrollV++;
+			xPointer +=15;
+            break;
+
+        case SB_LINERIGHT:
+            si.nPos += 1;
+			scrollV--;
+			xPointer -=15;
+            break;
+
+       
+
+        default:
+            break;
+    }
+
+    // 스크롤 위치가 최소값보다 작거나 최대값보다 크면 조정합니다.
+    si.nPos = max(0, min(si.nPos, si.nMax - si.nPage));
+
+    // 새로운 스크롤 위치를 설정합니다.
+    SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+
+    // 화면을 다시 그립니다.
+    
+
+	{
+			InvalidateRect(hWnd,NULL,TRUE);
+            UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+			
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					
+					continue;
+					}
+					if(textCount >0 && texts[i].count == 15){
+				
+				
+							TextOut(hdc, x-(scrollV)*(-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += 15;
+					
+					continue;
+					}
+					
+						
+							TextOut(hdc, x-(scrollV)*(-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+
+			}
+
+
+    break;
+}
 
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam);
@@ -1109,11 +1307,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			 continue;
 			}
 			if(textCount >0 && texts[i].count == 15){
-			 TextOut(hdc, x, y, texts[i].text, 1);
+			 TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 			x += 15;
 			continue;
 			}
-            TextOut(hdc, x, y, texts[i].text, 1);
+            TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
 			x += 10;
         }
         ReleaseDC(hWnd, hdc);
@@ -1124,7 +1322,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			hdc = GetDC(hWnd);
 			CreateCaret(hWnd,NULL,1, 17);
 			ShowCaret(hWnd);
-			SetCaretPos(xPointer,yPointer);
+			SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 		}
 		break;
 
@@ -1139,7 +1337,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 			
 		hdc = BeginPaint(hWnd,&ps);
-		SetCaretPos(xPointer,yPointer);
+		SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 		EndPaint(hWnd,&ps);
 		break;
 
