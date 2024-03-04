@@ -1184,7 +1184,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					else{
 					x += texts[i].count;
 					}
-					if(xPointer == x && yPointer == y){
+					if(xPointer - x<6 && yPointer == y){
+						xPointer = x;
 						pointerCount = i+1;
 						SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 						ShowCaret(hWnd);
@@ -1222,47 +1223,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				
 
 
-				{//rr
-					InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
-
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
 				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
-				
-
-
-					}//rr
-
 
 
 				
@@ -1278,7 +1239,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					yPointer +=17;
 					for(int i=0;i<textCount;i++){
 					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-						if(yPointer == y&& xPointer> x){//아래가 더 작음.
+						if(yPointer == y){//아래가 더 작음.
 						FFF = 1;
 						 xPointer = x;
 						 pointerCount = i;
@@ -1289,7 +1250,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 					else{
 					x += texts[i].count;
-					if(xPointer == x&& yPointer == y){//아래가 크거나 같
+					if(xPointer - x <6&& yPointer == y){//아래가 크거나 같
+						xPointer = x;
 						FFF = -1;
 						pointerCount = i+1;
 						break;
@@ -1313,6 +1275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 				ShowCaret(hWnd);
+				break;
 				}
 							 
 				case VK_HOME:{
