@@ -290,10 +290,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				Cstr[len] = L'\0';
 				int xPt = xPointer + 15;
 				if(Cstr[0] != L'\0'){
-				TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, Cstr, 1);
+				TextOut(hdc,xPointer- (scrollV) * (-15),  yPointer - (scrollH)*15, Cstr, 1);
 				}
 				else {
-				TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"    ", 4);
+				TextOut(hdc,xPointer- (scrollV) * (-15),  yPointer - (scrollH)*15, L"    ", 4);
 				xPt -= 15;
 				}
 				
@@ -1378,7 +1378,28 @@ case WM_VSCROLL:
 			scrollH++;
 			
             break;
+		case SB_PAGEUP:{
+			if(scrollH ==0) break;
 
+			if(scrollH <5){
+			scrollH = 0;
+			si.nPos = 0;
+			}
+			else{
+				si.nPos -= 5;
+				scrollH -= 5;}
+            
+			break;
+					   }
+		case SB_PAGEDOWN:{
+			
+            si.nPos += 5;
+			
+			scrollH += 5;
+			break;
+					   }
+		
+		
         
 
         default:
@@ -1470,7 +1491,28 @@ case WM_HSCROLL:
 			
             break;
 
-       
+       case SB_PAGELEFT:{
+			if(scrollV ==0) break;
+			if(scrollV >-5){
+			scrollV = 0;
+			si.nPos = 0;
+			}
+			else{
+				scrollV += 5;
+			si.nPos -= 5;
+			}
+			
+			break;
+					   }
+            
+			
+		case SB_PAGERIGHT:{
+			
+            si.nPos += 5;
+			
+			scrollV -= 5;
+			break;
+					   }
 
         default:
             break;
