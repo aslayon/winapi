@@ -27,7 +27,7 @@ wchar_t Cstr[10];
 int ime_Counter = 0;
 int scrollH = 0;
 int scrollV = 0;
-
+RECT RectErase;
 
 struct TextData {
     wchar_t* text;
@@ -49,8 +49,12 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 void SaveDataToFile(HWND hWnd, HDC hdc);
 void LoadDataFromFile(HWND hWnd,HDC hdc);
 void ResetNote(HDC hdc);
-
-
+void IME_RESULT(HWND hWnd, HDC hdc);
+void IME_COMP(HWND hWnd,HDC hdc);
+void LeftClick(HDC hdc);
+void Return(HDC hdc);
+void Back(HDC hdc);
+void BKTAB(HDC hdc);
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPTSTR    lpCmdLine,
@@ -185,6 +189,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+
+	
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
@@ -219,154 +225,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			hdc = GetDC(hWnd);
 			
 			if(lParam & GCS_RESULTSTR){
-				if((len = ImmGetCompositionString(Himc,GCS_RESULTSTR,NULL,0))>0){
-					ime_Counter = 0;
-					ImmGetCompositionString(Himc,GCS_RESULTSTR,Cstr,len);
-					Cstr[len] = L'\0';
-					TextOut(hdc,xPointer- (scrollV) * (-15), yPointer - (scrollH)*15, Cstr, 1);
-					
-
-
-
-					int xPt = xPointer + 15;
-					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
-					xPointer += 15;
-					ime = 1;
-
-					if(InsertFlag == 1 && pointerCount != textCount){
-						for(int i = textCount; i> pointerCount;i--){
-							if(i ==0) break;
-							texts[i].text = texts[i-1].text;
-							texts[i].count = texts[i-1].count;
-						}
-					}
-
-					if(InsertFlag == -1){
-					if(pointerCount != textCount){}
-					else{texts[pointerCount].text = new wchar_t[2];}
-				
-					}
-					else{					
-						texts[pointerCount].text = new wchar_t[2];}
-
-					wcscpy(texts[pointerCount].text, Cstr);
-					texts[pointerCount].count = 15;
-					if(InsertFlag == -1 && textCount != pointerCount){}
-					else{
-						textCount++;}
-					pointerCount++;
-					if(InsertFlag  ==1&& pointerCount < textCount){
-					int x= 0;
-					int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-			
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-					if(i>=pointerCount-1){
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);}
-					x += texts[i].count;
-					continue;
-					}
-					if(i>=pointerCount-1){
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);}
-					x += 10;
-					}
-					
-					}
-				}
+				IME_RESULT(hWnd, hdc);
 			}
 			else if(lParam & GCS_COMPSTR){
-				ime_Counter++;
-				
-				if(ime == 1) 
-					ime =  (-1);
-				len =ImmGetCompositionString(Himc,GCS_COMPSTR,NULL,0);
-				ImmGetCompositionString(Himc,GCS_COMPSTR,Cstr,len);
-				Cstr[len] = L'\0';
-				int xPt = xPointer + 15;
-				if(Cstr[0] != L'\0'){
-				TextOut(hdc,xPointer- (scrollV) * (-15),  yPointer - (scrollH)*15, Cstr, 1);
-				}
-				else {
-				TextOut(hdc,xPointer- (scrollV) * (-15),  yPointer - (scrollH)*15, L"    ", 4);
-				xPt -= 15;
-				}
-				
-
-
-				
-					xPointer +=15;
-				ShowCaret(hWnd);
-				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
-				xPointer -=15;
+				IME_COMP(hWnd, hdc);
 			}
 			ShowCaret(hWnd);
 			break;
 		}
 		
 		case WM_LBUTTONDOWN:{
-				HideCaret(hWnd);
-				POINT cur;
-				int xCur=0;
-			
-				
-				int yCur=0;
-			
-
-				int x = 0;
-				int y = 0;
-
-				int Found =0;
-				if(GetCursorPos(&cur)){
-					ScreenToClient(hWnd, &cur);
-					xCur = cur.x- (scrollV) * (15);
-					yCur = cur.y - (scrollH)*(-15);
-					
-					if(yCur > MAX_yPointer){
-						Found = -1;
-					}
-					for(int i=0;i<textCount;i++){
-						if(yCur - y >=0 && yCur - y <= 17){
-							if(xCur-x >=0 && xCur - x <= texts[i].count){
-								Found = 1;
-								xPointer = x;
-								yPointer = y;
-								pointerCount = i;
-								break;
-							}
-						}
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-						
-					x =0;
-					y += 17;
-					}
-					else{
-					x += texts[i].count;
-					
-						}
-					
-					}
-
-
-
-				}
-				else{
-				ShowCaret(hWnd);
-				break;
-				}
-				if(Found !=1){
-					xPointer = x;
-					yPointer = y;
-					pointerCount = textCount;
-				}
-				
-				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
-				ShowCaret(hWnd);
+				LeftClick(hdc);
 					break;		
 							}
 		case WM_CHAR:
@@ -381,61 +250,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 
 			case VK_RETURN:{
-				HideCaret(hWnd);
-            yPointer += 17;
-            xPointer = 0;
-			if(MAX_yPointer <yPointer){
-				MAX_yPointer = yPointer;}
-
-			if(InsertFlag == 1 && pointerCount < textCount){
-				for(int i=textCount; i>pointerCount;i--){
-					
-					texts[i].text = texts[i-1].text;
-					texts[i].count = texts[i-1].count;
-				}
-			}
-            texts[pointerCount].text = new wchar_t[2];
-            texts[pointerCount].text[0] = L'\0';
-            texts[pointerCount].text[1] = L'\0';
-            texts[pointerCount].count = 0; 
-            textCount++;
-			pointerCount++;
-			InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
-
-			int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-
-					}
+				Return(hdc);
 						   }
 					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 			ShowCaret(hWnd);
@@ -445,209 +260,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 			case VK_BACK:{
-				
-				if(textCount ==0) break;
-				if(pointerCount == 0){
-					break;
-				ShowCaret(hWnd);
-				}
-				HideCaret(hWnd);
-				if (textCount > 0 && texts[pointerCount - 1].count >= 15) { //이전입력이 글자일때
 			
-				
-				
-				
-				delete[] (texts[pointerCount - 1].text);
-				xPointer -= texts[pointerCount - 1].count;
-				texts[pointerCount - 1].count =0;
-                textCount--;
-				pointerCount--;
-                
-                TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"    ", 4);
-
-				if(pointerCount < textCount){
-				for(int i=pointerCount; i<textCount;i++){
-					if(!texts[i+1].text)break;
-					texts[i].text = texts[i+1].text;
-					texts[i].count = texts[i+1].count;
-				}
-				texts[textCount+1].text = NULL;
-			}
-
-
-				{
-				
-					InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
-
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
-				
-
-				
-				}
-				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
-			ShowCaret(hWnd);
-				break;
-            }
-				else if (textCount > 0 && texts[pointerCount - 1].count == 0) { //이전 입력이 엔터일때
-                yPointer -= 17;
-                xPointer = 0; // 변경된 부분
-                delete[] (texts[pointerCount - 1].text);
-                textCount--;
-				pointerCount--;
-				
-				
-				if(pointerCount < textCount){
-				for(int i=pointerCount; i<textCount;i++){
-					if(!texts[i+1].text)break;
-					texts[i].text = texts[i+1].text;
-					texts[i].count = texts[i+1].count;
-				}
-				texts[textCount+1].text = NULL;
-			}
-				
-				{
-				
-				InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
-
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
-				
-
-
-				}
-
-				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
-			ShowCaret(hWnd);
-
-				break;
-            }
-				else if(textCount >0 && texts[pointerCount-1].count == 10){
-				delete[] (texts[pointerCount - 1].text);
-                textCount--;
-				pointerCount--;
-                xPointer -= 10;
-				TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"   ", 3);
-				
-				
-				if(pointerCount < textCount){
-				for(int i=pointerCount; i<textCount;i++){
-					if(!texts[i+1].text)break;
-					texts[i].text = texts[i+1].text;
-					texts[i].count = texts[i+1].count;
-				}
-				texts[textCount+1].text = NULL;
-			}
-				
-				
-				{
-				
-				InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
-
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
-				
-
-				}
-				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
-			ShowCaret(hWnd);
-				break;
-			}
-            
+            Back(hdc);
 							 }
 
 
@@ -661,74 +275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 			case VK_TAB:{
-					wchar_t str[2] = { L' ', L'\0' };
-					TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, str, 4);
-					xPointer += 40;
-
-
-					if(InsertFlag ==1 && pointerCount < textCount){
-				for(int i=textCount; i>pointerCount; i--){
-					if(i ==0)break;
-					texts[i].text = texts[i-1].text;
-					texts[i].count = texts[i-1].count;
-				}
-			}
-			if(InsertFlag == -1){
-				if(pointerCount != textCount){}
-				else{texts[pointerCount].text = new wchar_t[2];}
-				
-			}
-			else{
-				texts[pointerCount].text = new wchar_t[2];}
-            wcscpy(texts[pointerCount].text, str);
-            texts[pointerCount].count = 40;
-			if(InsertFlag == -1 && textCount != pointerCount){}
-			else{
-				textCount++;}
-			pointerCount++;
-			
-			
-			
-			{
-			InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
-
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
-				
-
-
-			}
+					BKTAB(hdc);
 
 
 					break;
@@ -774,10 +321,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			pointerCount++;
 			
 			
-			
+			if(pointerCount == textCount){
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+				ShowCaret(hWnd);
+				break;
+			}
 			{
-			InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
+				RECT clientRect;
+				GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+				int windowWidth = clientRect.right - clientRect.left;
+				int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+				RectErase.left = 0; // 왼쪽 x 좌표
+				RectErase.top = yPointer; // 시작 y 좌표
+				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+				RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
+
+
+				InvalidateRect(hWnd,NULL,FALSE);
+				UpdateWindow(hWnd);
 
 				int x= 0;
 				int y=0;
@@ -832,22 +397,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			case VK_DELETE:{
 						   
-						if(textCount ==0) break;
-				if(pointerCount == 0){
-					break;
-				ShowCaret(hWnd);
-				}
+				if(textCount == pointerCount) break;
+				
 				HideCaret(hWnd);
-				if (textCount > 0 && texts[pointerCount - 1].count >= 15) { //이전입력이 글자일때
+				if (textCount > 0 && texts[pointerCount].count >= 15) { //이전입력이 글자일때
 			
 				
 				
 				
-				delete[] (texts[pointerCount - 1].text);
-				xPointer -= texts[pointerCount - 1].count;
-				texts[pointerCount - 1].count =0;
+				delete[] (texts[pointerCount ].text);
+				
+				texts[pointerCount ].count =0;
                 textCount--;
-				pointerCount--;
+				
                 
                 TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"    ", 4);
 
@@ -862,12 +424,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 				{
-				
-					InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
+					RECT clientRect;
+					GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
 
-				int x= 0;
-				int y=0;
+				// 윈도우의 폭과 높이를 계산
+					int windowWidth = clientRect.right - clientRect.left;
+					int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+					RectErase.left = 0; // 왼쪽 x 좌표
+					RectErase.top = yPointer; // 시작 y 좌표
+					RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+					RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
+
+
+					
+					
+
+					InvalidateRect(hWnd,NULL,FALSE);
+					UpdateWindow(hWnd);
+
+					int x= 0;
+					int y=0;
 					HDC hdc = GetDC(hWnd);
 					for(int i =0; i< textCount; i++) {
 					
@@ -906,12 +484,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ShowCaret(hWnd);
 				break;
             }
-				else if (textCount > 0 && texts[pointerCount - 1].count == 0) { //이전 입력이 엔터일때
-                yPointer -= 17;
-                xPointer = 0; // 변경된 부분
-                delete[] (texts[pointerCount - 1].text);
+				else if (textCount > 0 && texts[pointerCount].count == 0) { //이전 입력이 엔터일때
+                
+                delete[] (texts[pointerCount].text);
                 textCount--;
-				pointerCount--;
+				
 				
 				
 				if(pointerCount < textCount){
@@ -925,11 +502,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				
 				{
 				
-				InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
+					RECT clientRect;
+					GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
 
-				int x= 0;
-				int y=0;
+				// 윈도우의 폭과 높이를 계산
+					int windowWidth = clientRect.right - clientRect.left;
+					int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+					RectErase.left = 0; // 왼쪽 x 좌표
+					RectErase.top = yPointer; // 시작 y 좌표
+					RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+					RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)
+
+
+					
+					
+
+					InvalidateRect(hWnd,NULL,FALSE);
+					UpdateWindow(hWnd);
+
+					int x= 0;
+					int y=0;
 					HDC hdc = GetDC(hWnd);
 					for(int i =0; i< textCount; i++) {
 					
@@ -970,11 +564,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				break;
             }
-				else if(textCount >0 && texts[pointerCount-1].count == 10){
-				delete[] (texts[pointerCount - 1].text);
+				else if(textCount >0 && texts[pointerCount].count == 10){
+				delete[] (texts[pointerCount].text);
                 textCount--;
-				pointerCount--;
-                xPointer -= 10;
+				
+                
 				TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"   ", 3);
 				
 				
@@ -990,11 +584,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				
 				{
 				
-				InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
+					RECT clientRect;
+					GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
 
-				int x= 0;
-				int y=0;
+				// 윈도우의 폭과 높이를 계산
+					int windowWidth = clientRect.right - clientRect.left;
+					int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+					RectErase.left = 0; // 왼쪽 x 좌표
+					RectErase.top = yPointer; // 시작 y 좌표
+					RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+					RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)
+
+
+					
+					
+
+					InvalidateRect(hWnd,NULL,FALSE);
+					UpdateWindow(hWnd);
+
+					int x= 0;
+					int y=0;
 					HDC hdc = GetDC(hWnd);
 					for(int i =0; i< textCount; i++) {
 					
@@ -1056,46 +667,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					break;
 
 
-					{//rr
-					InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
-
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
 					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
-				
-
-
-					}//rr
 
 
 
@@ -1122,46 +694,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						xPointer += texts[pointerCount-1].count;
 						
 					}
-					{//rr
-					InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
-
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
 					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
-				
-
-
-					}//rr
 
 					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 					ShowCaret(hWnd);
@@ -1415,7 +948,7 @@ case WM_VSCROLL:
     // 화면을 다시 그립니다.
     
 	{
-			InvalidateRect(hWnd,NULL,TRUE);
+			InvalidateRect(hWnd,NULL,FALSE);
             UpdateWindow(hWnd);
 
 				int x= 0;
@@ -1528,7 +1061,7 @@ case WM_HSCROLL:
     
 
 	{
-			InvalidateRect(hWnd,NULL,TRUE);
+			InvalidateRect(hWnd,NULL,FALSE);
             UpdateWindow(hWnd);
 
 				int x= 0;
@@ -1545,7 +1078,7 @@ case WM_HSCROLL:
 					}
 					if(textCount >0 && texts[i].count >= 15){
 				
-				
+						if(x-(scrollV)*(-15)>-15 && y - (scrollH)*15>-15);
 							TextOut(hdc, x-(scrollV)*(-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
@@ -1555,7 +1088,7 @@ case WM_HSCROLL:
 					continue;
 					}
 					
-						
+						if(x-(scrollV)*(-15)>-15 && y - (scrollH)*15>-15);
 							TextOut(hdc, x-(scrollV)*(-15), y - (scrollH)*15, texts[i].text, 1);
 						
 					
@@ -1610,24 +1143,59 @@ case WM_HSCROLL:
 		}
 		break;
 	case WM_SIZE:{
-		int x= 0;
-		int y=0;
-            HDC hdc = GetDC(hWnd);
-		for(int i =0; i< textCount; i++) {
-			
-			if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-			 x= 0;
-			 y += 17;
-			 continue;
-			}
-			if(textCount >0 && texts[i].count >= 15){
-			 TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-			x += texts[i].count;
-			continue;
-			}
-            TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-			x += 10;
-        }
+		{
+				RECT clientRect;
+				GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+				int windowWidth = clientRect.right - clientRect.left;
+				int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+				RectErase.left = 0; // 왼쪽 x 좌표
+				RectErase.top = 0; // 시작 y 좌표
+				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+				RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)	
+				InvalidateRect(hWnd,NULL,FALSE);
+				UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					MAX_yPointer = y;
+					continue;
+					}
+					if(textCount >0 && texts[i].count >= 15){
+				
+						
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += texts[i].count;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+				
+				}
         ReleaseDC(hWnd, hdc);
 				 }
 		break;
@@ -1650,10 +1218,13 @@ case WM_HSCROLL:
 	case WM_PAINT:
 	{
 			
-		hdc = BeginPaint(hWnd,&ps);
-		SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
-		EndPaint(hWnd,&ps);
-		break;
+		PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+
+        // 변경될 부분의 좌표에 사각형을 그립니다.
+        FillRect(hdc, &RectErase, (HBRUSH)(COLOR_WINDOW + 1));
+
+        EndPaint(hWnd, &ps);
 
 	}
 	break;
@@ -1786,8 +1357,8 @@ void LoadDataFromFile(HWND hWnd,HDC hdc) {
 
 			{
 				
-					InvalidateRect(hWnd,NULL,TRUE);
-            UpdateWindow(hWnd);
+				InvalidateRect(hWnd,NULL,FALSE);
+				UpdateWindow(hWnd);
 
 				int x= 0;
 				int y=0;
@@ -1860,9 +1431,650 @@ pointerCount =0;
 focusingFlag =1;
 InsertFlag = 1;
 MAX_yPointer =0;
-	InvalidateRect(hWnd,NULL,TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
             UpdateWindow(hWnd);
 							 }
 	
 	
+}
+
+void IME_RESULT(HWND hWnd, HDC hdc){
+	int len;
+	HIMC Himc = ImmGetContext(hWnd);
+	hdc = GetDC(hWnd);
+	if((len = ImmGetCompositionString(Himc,GCS_RESULTSTR,NULL,0))>0){
+					ime_Counter = 0;
+					ImmGetCompositionString(Himc,GCS_RESULTSTR,Cstr,len);
+					Cstr[len] = L'\0';
+					TextOut(hdc,xPointer- (scrollV) * (-15), yPointer - (scrollH)*15, Cstr, 1);
+					
+
+
+
+					int xPt = xPointer + 15;
+					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+					xPointer += 15;
+					ime = 1;
+
+					if(InsertFlag == 1 && pointerCount != textCount){
+						for(int i = textCount; i> pointerCount;i--){
+							if(i ==0) break;
+							texts[i].text = texts[i-1].text;
+							texts[i].count = texts[i-1].count;
+						}
+					}
+
+					if(InsertFlag == -1){
+					if(pointerCount != textCount){}
+					else{texts[pointerCount].text = new wchar_t[2];}
+				
+					}
+					else{					
+						texts[pointerCount].text = new wchar_t[2];}
+
+					wcscpy(texts[pointerCount].text, Cstr);
+					texts[pointerCount].count = 15;
+					if(InsertFlag == -1 && textCount != pointerCount){}
+					else{
+						textCount++;}
+					pointerCount++;
+					if(InsertFlag  ==1&& pointerCount < textCount){
+
+					RECT clientRect;
+					GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+					int windowWidth = clientRect.right - clientRect.left;
+					int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+					RectErase.left = 0; // 왼쪽 x 좌표
+					RectErase.top = yPointer; // 시작 y 좌표
+					RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+					RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
+
+
+					InvalidateRect(hWnd,NULL,FALSE);
+					UpdateWindow(hWnd);
+
+					int x= 0;
+					int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count >= 15){
+				
+						
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += texts[i].count;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+
+					}
+					
+					}
+				}
+
+}
+
+void IME_COMP(HWND hWnd,HDC hdc){
+	int len;
+	ime_Counter++;
+	HIMC Himc = ImmGetContext(hWnd);
+	hdc = GetDC(hWnd);
+	if(ime == 1) 
+			ime =  (-1);
+	len =ImmGetCompositionString(Himc,GCS_COMPSTR,NULL,0);
+	ImmGetCompositionString(Himc,GCS_COMPSTR,Cstr,len);
+	Cstr[len] = L'\0';
+	int xPt = xPointer + 15;
+	if(Cstr[0] != L'\0'){
+			TextOut(hdc,xPointer- (scrollV) * (-15),  yPointer - (scrollH)*15, Cstr, 1);
+	}
+	else {
+			TextOut(hdc,xPointer- (scrollV) * (-15),  yPointer - (scrollH)*15, L"    ", 4);
+			xPt -= 15;
+	}
+				
+
+
+				
+	xPointer +=15;
+	ShowCaret(hWnd);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+	xPointer -=15;
+	
+}
+
+void LeftClick(HDC hdc){
+	HideCaret(hWnd);
+				POINT cur;
+				int xCur=0;
+			
+				
+				int yCur=0;
+			
+
+				int x = 0;
+				int y = 0;
+
+				int Found =0;
+				if(GetCursorPos(&cur)){
+					ScreenToClient(hWnd, &cur);
+					xCur = cur.x- (scrollV) * (15);
+					yCur = cur.y - (scrollH)*(-15);
+					
+					if(yCur > MAX_yPointer){
+						Found = -1;
+					}
+					for(int i=0;i<textCount;i++){
+						if(yCur - y >=0 && yCur - y <= 17){
+							if(xCur-x >=0 && xCur - x <= texts[i].count){
+								Found = 1;
+								xPointer = x;
+								yPointer = y;
+								pointerCount = i;
+								break;
+							}
+						}
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+						
+					x =0;
+					y += 17;
+					}
+					else{
+					x += texts[i].count;
+					
+						}
+					
+					}
+
+
+
+				}
+				else{
+				ShowCaret(hWnd);
+				return;
+				}
+				if(Found !=1){
+					xPointer = x;
+					yPointer = y;
+					pointerCount = textCount;
+				}
+				
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+				ShowCaret(hWnd);
+
+}
+
+void Return(HDC hdc){
+	HideCaret(hWnd);
+            yPointer += 17;
+            xPointer = 0;
+			if(MAX_yPointer <yPointer){
+				MAX_yPointer = yPointer;}
+
+			if(InsertFlag == 1 && pointerCount < textCount){
+				for(int i=textCount; i>pointerCount;i--){
+					
+					texts[i].text = texts[i-1].text;
+					texts[i].count = texts[i-1].count;
+				}
+			}
+            texts[pointerCount].text = new wchar_t[2];
+            texts[pointerCount].text[0] = L'\0';
+            texts[pointerCount].text[1] = L'\0';
+            texts[pointerCount].count = 0; 
+            textCount++;
+			pointerCount++;
+
+
+			RECT clientRect;
+			GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+			int windowWidth = clientRect.right - clientRect.left;
+			int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+			RectErase.left = 0; // 왼쪽 x 좌표
+			RectErase.top = yPointer; // 시작 y 좌표
+			RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+			RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)
+
+
+			InvalidateRect(hWnd,NULL,FALSE);
+            UpdateWindow(hWnd);
+
+			int x= 0;
+				int y=0;
+					hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count >= 15){
+				
+						
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += texts[i].count;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+
+					}
+
+
+}
+
+void Back(HDC hdc){
+				
+				if(textCount ==0) return;
+				if(pointerCount == 0){
+					return;
+				ShowCaret(hWnd);
+				}
+				
+				
+				HideCaret(hWnd);
+				if (textCount > 0 && texts[pointerCount - 1].count >= 15) { //이전입력이 글자일때
+			
+				
+				
+				
+				delete[] (texts[pointerCount - 1].text);
+				xPointer -= texts[pointerCount - 1].count;
+				texts[pointerCount - 1].count =0;
+                textCount--;
+				pointerCount--;
+                
+                TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"    ", 4);
+
+				if(pointerCount < textCount){
+				for(int i=pointerCount; i<textCount;i++){
+					if(!texts[i+1].text)break;
+					texts[i].text = texts[i+1].text;
+					texts[i].count = texts[i+1].count;
+				}
+				texts[textCount+1].text = NULL;
+			}
+
+				if(pointerCount == textCount){
+					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+					ShowCaret(hWnd);
+					return;
+				}
+				{
+				
+				RECT clientRect;
+				GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+				int windowWidth = clientRect.right - clientRect.left;
+				int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+				RectErase.left = 0; // 왼쪽 x 좌표
+				RectErase.top = yPointer; // 시작 y 좌표
+				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+				RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
+				InvalidateRect(hWnd,&RectErase,TRUE);	
+				UpdateWindow(hWnd);
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+
+					continue;
+					}
+					if(textCount >0 && texts[i].count >= 15){
+				
+						if(y == yPointer)
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += texts[i].count;
+					
+					continue;
+					}
+					
+						if(y == yPointer)
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+				
+				}
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+			ShowCaret(hWnd);
+				return;
+            }
+				else if (textCount > 0 && texts[pointerCount - 1].count == 0) { //이전 입력이 엔터일때
+                yPointer -= 17;
+                xPointer = 0; // 변경된 부분
+                delete[] (texts[pointerCount - 1].text);
+                textCount--;
+				pointerCount--;
+				
+				
+				if(pointerCount < textCount){
+				for(int i=pointerCount; i<textCount;i++){
+					if(!texts[i+1].text)break;
+					texts[i].text = texts[i+1].text;
+					texts[i].count = texts[i+1].count;
+				}
+				texts[textCount+1].text = NULL;
+			}
+				int x=0;
+				int y=0;
+				for(int i =0; i< pointerCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count >= 15){
+				
+						if(y >= yPointer)
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += texts[i].count;
+					
+					continue;
+					}
+					
+						if(y >= yPointer)
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				xPointer = x;
+
+				if(pointerCount == textCount){
+					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+					ShowCaret(hWnd);
+					return;
+				}
+				{
+				RECT clientRect;
+				GetClientRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+				int windowWidth = clientRect.right - clientRect.left;
+				int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+				
+				RectErase.left = 0; // 왼쪽 x 좌표
+				RectErase.top = yPointer; // 시작 y 좌표
+				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+				RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)
+
+				InvalidateRect(hWnd,&RectErase,FALSE);
+				UpdateWindow(hWnd);			
+				
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count >= 15){
+				
+						if(y >= yPointer)
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += texts[i].count;
+					
+					continue;
+					}
+					
+						if(y >= yPointer)
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+				
+
+				}
+
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+				ShowCaret(hWnd);
+
+				return;
+            }
+				else if(textCount >0 && texts[pointerCount-1].count == 10){
+				delete[] (texts[pointerCount - 1].text);
+                textCount--;
+				pointerCount--;
+                xPointer -= 10;
+				TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, L"   ", 3);
+				
+				
+				if(pointerCount < textCount){
+				for(int i=pointerCount; i<textCount;i++){
+					if(!texts[i+1].text)break;
+					texts[i].text = texts[i+1].text;
+					texts[i].count = texts[i+1].count;
+				}
+				texts[textCount+1].text = NULL;
+				}
+				
+				if(pointerCount == textCount){
+					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+					ShowCaret(hWnd);
+					return;
+				}
+				{
+				RECT clientRect;
+				GetClientRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+				int windowWidth = clientRect.right - clientRect.left;
+				int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+				
+				RectErase.left = 0; // 왼쪽 x 좌표
+				RectErase.top = yPointer; // 시작 y 좌표
+				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+				RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
+
+			
+				InvalidateRect(hWnd,&RectErase,FALSE);
+				UpdateWindow(hWnd);
+				
+				int x= 0;
+				int y=0;
+					hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count >= 15){
+				
+						if(y == yPointer)
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += texts[i].count;
+					
+					continue;
+					}
+					
+						if(y == yPointer)
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+				
+				}
+				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+			ShowCaret(hWnd);
+				return;
+			}
+}
+
+void BKTAB(HDC hdc){
+			wchar_t str[2] = { L' ', L'\0' };
+			TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, str, 4);
+			xPointer += 40;
+
+
+			if(InsertFlag ==1 && pointerCount < textCount){
+				for(int i=textCount; i>pointerCount; i--){
+					if(i ==0)break;
+					texts[i].text = texts[i-1].text;
+					texts[i].count = texts[i-1].count;
+				}
+			}
+			if(InsertFlag == -1){
+				if(pointerCount != textCount){}
+				else{texts[pointerCount].text = new wchar_t[2];}
+				
+			}
+			else{
+				texts[pointerCount].text = new wchar_t[2];}
+				wcscpy(texts[pointerCount].text, str);
+				texts[pointerCount].count = 40;
+			if(InsertFlag == -1 && textCount != pointerCount){}
+			else{
+				textCount++;}
+				pointerCount++;
+			
+			
+			
+			{
+				RECT clientRect;
+				GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+				int windowWidth = clientRect.right - clientRect.left;
+				int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+				RectErase.left = 0; // 왼쪽 x 좌표
+				RectErase.top = yPointer; // 시작 y 좌표
+				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+				RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
+
+
+				InvalidateRect(hWnd,NULL,FALSE);
+				UpdateWindow(hWnd);
+
+				int x= 0;
+				int y=0;
+					HDC hdc = GetDC(hWnd);
+					for(int i =0; i< textCount; i++) {
+					
+					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+					x= 0;
+					y += 17;
+					continue;
+					}
+					if(textCount >0 && texts[i].count >= 15){
+				
+						
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					x += texts[i].count;
+					
+					continue;
+					}
+					
+						
+						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+					x += 10;
+					
+					continue;
+					}
+				
+
+
+			}
+
 }
