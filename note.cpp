@@ -190,6 +190,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 
+	RECT tempRect;
+	GetWindowRect(hWnd, &tempRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+	int Widthh = tempRect.right - tempRect.left -50;
+	int Heightt = tempRect.bottom - tempRect.top-50;
+
 	
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
@@ -292,7 +299,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 CharLowerW(str);
             }
 
-            TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, str, 1);
+            TextOut(hdc,xPointer- (scrollV) * (-15), yPointer - (scrollH)*15, str, 1);
             xPointer += 10;
 
 
@@ -321,12 +328,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			pointerCount++;
 			
 			
+
+			//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+
+
 			if(pointerCount == textCount){
 				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 				ShowCaret(hWnd);
 				break;
 			}
 			{
+
+
 				RECT clientRect;
 				GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
 
@@ -344,38 +391,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				InvalidateRect(hWnd,NULL,FALSE);
 				UpdateWindow(hWnd);
 
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
+			
 				
 
 
@@ -421,6 +437,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				texts[textCount+1].text = NULL;
 			}
+
+
+
+				//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+
+
+
 
 
 				{
@@ -517,7 +574,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 					
-					
+					//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
 
 					InvalidateRect(hWnd,NULL,FALSE);
 					UpdateWindow(hWnd);
@@ -598,7 +689,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)
 
 
-					
+					//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
 					
 
 					InvalidateRect(hWnd,NULL,FALSE);
@@ -666,7 +791,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					ShowCaret(hWnd);
 					break;
 
+					//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
 
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
 					
 
 
@@ -695,7 +854,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						
 					}
 					
+					//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
 
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
 					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 					ShowCaret(hWnd);
 					break;
@@ -755,7 +948,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				
 
+				//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
 
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
 				
 
 
@@ -808,6 +1035,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 				ShowCaret(hWnd);
+
+
+
+				//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+
+
+
 				break;
 				}
 							 
@@ -834,6 +1102,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 
 					}
+					//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
 					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 				ShowCaret(hWnd);
 					
@@ -868,7 +1171,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						pointerCount = textCount;
 						xPointer = x;
 						}
-						
+						//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
 
 				SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 				ShowCaret(hWnd);
@@ -948,43 +1285,22 @@ case WM_VSCROLL:
     // 화면을 다시 그립니다.
     
 	{
-			InvalidateRect(hWnd,NULL,FALSE);
-            UpdateWindow(hWnd);
+				RECT clientRect;
+				GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
 
-				int x= 0;
-				int y=0;
+				// 윈도우의 폭과 높이를 계산
+				int windowWidth = clientRect.right - clientRect.left;
+				int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+				RectErase.left = 0; // 왼쪽 x 좌표
+				RectErase.top = 0; // 시작 y 좌표
+				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+				RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)	
+				InvalidateRect(hWnd,NULL,FALSE);
+				UpdateWindow(hWnd);
+
 				
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-							TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-							TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
 				
 
 
@@ -1061,43 +1377,22 @@ case WM_HSCROLL:
     
 
 	{
-			InvalidateRect(hWnd,NULL,FALSE);
-            UpdateWindow(hWnd);
+				RECT clientRect;
+				GetWindowRect(hWnd, &clientRect); // hWnd는 윈도우의 핸들
 
-				int x= 0;
-				int y=0;
-			
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
+				// 윈도우의 폭과 높이를 계산
+				int windowWidth = clientRect.right - clientRect.left;
+				int windowHeight = clientRect.bottom - clientRect.top;
+
+				// RECT 구조체 만들기
+				RectErase.left = 0; // 왼쪽 x 좌표
+				RectErase.top = 0; // 시작 y 좌표
+				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
+				RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)	
+				InvalidateRect(hWnd,NULL,FALSE);
+				UpdateWindow(hWnd);
+
 				
-						if(x-(scrollV)*(-15)>-15 && y - (scrollH)*15>-15);
-							TextOut(hdc, x-(scrollV)*(-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						if(x-(scrollV)*(-15)>-15 && y - (scrollH)*15>-15);
-							TextOut(hdc, x-(scrollV)*(-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
 				
 
 
@@ -1159,39 +1454,7 @@ case WM_HSCROLL:
 				InvalidateRect(hWnd,NULL,FALSE);
 				UpdateWindow(hWnd);
 
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					MAX_yPointer = y;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
+	
 				
 
 				
@@ -1218,13 +1481,68 @@ case WM_HSCROLL:
 	case WM_PAINT:
 	{
 			
-		PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hWnd, &ps);
+		/** 더블버퍼링 시작처리입니다. **/
+        HDC hdc, MemDC, tmpDC;
+        HBITMAP BackBit, oldBackBit;
+        RECT bufferRT;
+        hdc = BeginPaint(hWnd, &ps);
+       
+        GetClientRect(hWnd, &bufferRT);
+        MemDC = CreateCompatibleDC(hdc);
+        BackBit = CreateCompatibleBitmap(hdc, bufferRT.right, bufferRT.bottom);
+        oldBackBit = (HBITMAP)SelectObject(MemDC, BackBit);
+        PatBlt(MemDC,0,0,bufferRT.right, bufferRT.bottom, WHITENESS);
+       
 
-        // 변경될 부분의 좌표에 사각형을 그립니다.
-        FillRect(hdc, &RectErase, (HBRUSH)(COLOR_WINDOW + 1));
+        // TODO: 여기에 그리기 코드를 추가합니다.
+		RECT rc;
+        GetClientRect(hWnd, &rc);
+        FillRect(hdc, &rc, (HBRUSH)(COLOR_WINDOW+1));
+        int x= 0;
+		int y=0;
+		hdc = GetDC(hWnd);
+		for(int i =0; i< textCount; i++) {
+					
+			if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
+				x= 0;
+				y += 17;
+				continue;
+			}
+			if(textCount >0 && texts[i].count >= 15){
+				
+						
+				TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+				x += texts[i].count;
+					
+			continue;
+		}
+					
+						
+				TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
+						
+					
+					
+					
+				x += 10;
+					
+				continue;
+		}
 
+        /** 더블버퍼링 끝처리 입니다. **/
+        tmpDC=hdc;
+        hdc=MemDC;
+        MemDC=tmpDC;
+        GetClientRect(hWnd, &bufferRT);
+        BitBlt(hdc, 0, 0, bufferRT.right, bufferRT.bottom, MemDC, 0, 0, SRCCOPY);
+        SelectObject(MemDC, oldBackBit);
+        DeleteObject(BackBit);
+        DeleteDC(MemDC);
         EndPaint(hWnd, &ps);
+        break;
+
 
 	}
 	break;
@@ -1439,6 +1757,14 @@ MAX_yPointer =0;
 }
 
 void IME_RESULT(HWND hWnd, HDC hdc){
+
+	RECT tempRect;
+	GetWindowRect(hWnd, &tempRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+	int Widthh = tempRect.right - tempRect.left -50;
+	int Heightt = tempRect.bottom - tempRect.top-50;
+
 	int len;
 	HIMC Himc = ImmGetContext(hWnd);
 	hdc = GetDC(hWnd);
@@ -1494,42 +1820,47 @@ void IME_RESULT(HWND hWnd, HDC hdc){
 					RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
 
 
+					//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+
+
 					InvalidateRect(hWnd,NULL,FALSE);
 					UpdateWindow(hWnd);
 
-					int x= 0;
-					int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
 					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-
-					}
 					
 					}
 				}
@@ -1628,6 +1959,15 @@ void LeftClick(HDC hdc){
 
 void Return(HDC hdc){
 	HideCaret(hWnd);
+
+	RECT tempRect;
+	GetWindowRect(hWnd, &tempRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+	int Widthh = tempRect.right - tempRect.left -50;
+	int Heightt = tempRect.bottom - tempRect.top-50;
+
+
             yPointer += 17;
             xPointer = 0;
 			if(MAX_yPointer <yPointer){
@@ -1657,12 +1997,52 @@ void Return(HDC hdc){
 
 				// RECT 구조체 만들기
 			RectErase.left = 0; // 왼쪽 x 좌표
-			RectErase.top = yPointer; // 시작 y 좌표
+			RectErase.top = yPointer-17; // 시작 y 좌표
 			RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
 			RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)
 
 
+
+			//커서 따라 스크롤 이동
+	if(yPointer - (scrollH)*15>Heightt-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_VERT, &si);
+
+	si.nPos += 2;
+	scrollH +=2;
+	 SetScrollPos(hWnd, SB_VERT, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(yPointer - (scrollH)*15<40 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_VERT, &si);
+
+	si.nPos -= 2;
+	scrollH -=2;
+	 SetScrollPos(hWnd, SB_VERT, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+
+
+
 			InvalidateRect(hWnd,NULL,FALSE);
+			/*
             UpdateWindow(hWnd);
 
 			int x= 0;
@@ -1696,8 +2076,8 @@ void Return(HDC hdc){
 					x += 10;
 					
 					continue;
-
-					}
+			
+					}*/
 
 
 }
@@ -1709,7 +2089,12 @@ void Back(HDC hdc){
 					return;
 				ShowCaret(hWnd);
 				}
-				
+				RECT tempRect;
+	GetWindowRect(hWnd, &tempRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+	int Widthh = tempRect.right - tempRect.left -50;
+	int Heightt = tempRect.bottom - tempRect.top-50;
 				
 				HideCaret(hWnd);
 				if (textCount > 0 && texts[pointerCount - 1].count >= 15) { //이전입력이 글자일때
@@ -1753,41 +2138,50 @@ void Back(HDC hdc){
 				RectErase.top = yPointer; // 시작 y 좌표
 				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
 				RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
-				InvalidateRect(hWnd,&RectErase,TRUE);	
-				UpdateWindow(hWnd);
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
 
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
+
+
+				//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+
+
+
+				InvalidateRect(hWnd,NULL,FALSE);	
+				UpdateWindow(hWnd);
 				
-						if(y == yPointer)
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						if(y == yPointer)
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
 				
 
 				
@@ -1846,6 +2240,43 @@ void Back(HDC hdc){
 				xPointer = x;
 
 				if(pointerCount == textCount){
+					TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, L"   ", 3);
+					if(yPointer - (scrollH)*15>Heightt-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_VERT, &si);
+
+	si.nPos += 2;
+	scrollH +=2;
+	 SetScrollPos(hWnd, SB_VERT, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+				ShowCaret(hWnd);
+	}
+	if(yPointer - (scrollH)*15<17 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_VERT, &si);
+
+	si.nPos -= 2;
+	scrollH -= 2;
+	 SetScrollPos(hWnd, SB_VERT, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+				ShowCaret(hWnd);
+	}
 					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 					ShowCaret(hWnd);
 					return;
@@ -1865,42 +2296,51 @@ void Back(HDC hdc){
 				RectErase.right = RectErase.left + windowWidth; // 오른쪽 x 좌표 (윈도우의 폭을 사용)
 				RectErase.bottom = RectErase.top + windowHeight; // 아래쪽 y 좌표 (가정한 높이를 사용)
 
-				InvalidateRect(hWnd,&RectErase,FALSE);
+
+							//커서 따라 스크롤 이동
+	if(yPointer - (scrollH)*15>Heightt-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_VERT, &si);
+
+	si.nPos += 2;
+	scrollH +=2;
+	 SetScrollPos(hWnd, SB_VERT, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+				ShowCaret(hWnd);
+	}
+	if(yPointer - (scrollH)*15<17 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_VERT, &si);
+
+	si.nPos -= 2;
+	scrollH -= 2;
+	 SetScrollPos(hWnd, SB_VERT, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+				ShowCaret(hWnd);
+	}
+
+
+
+				InvalidateRect(hWnd,NULL,FALSE);
 				UpdateWindow(hWnd);			
 				
 
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						if(y >= yPointer)
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						if(y >= yPointer)
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
 				
 				
 
@@ -1931,6 +2371,7 @@ void Back(HDC hdc){
 				if(pointerCount == textCount){
 					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 					ShowCaret(hWnd);
+
 					return;
 				}
 				{
@@ -1949,41 +2390,47 @@ void Back(HDC hdc){
 				RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
 
 			
-				InvalidateRect(hWnd,&RectErase,FALSE);
+				//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+
+
+				InvalidateRect(hWnd,NULL,FALSE);
 				UpdateWindow(hWnd);
 				
-				int x= 0;
-				int y=0;
-					hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
 				
-						if(y == yPointer)
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						if(y == yPointer)
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
 				
 				
 				}
@@ -1994,6 +2441,15 @@ void Back(HDC hdc){
 }
 
 void BKTAB(HDC hdc){
+
+	RECT tempRect;
+	GetWindowRect(hWnd, &tempRect); // hWnd는 윈도우의 핸들
+
+				// 윈도우의 폭과 높이를 계산
+	int Widthh = tempRect.right - tempRect.left -50;
+	int Heightt = tempRect.bottom - tempRect.top-50;
+
+
 			wchar_t str[2] = { L' ', L'\0' };
 			TextOut(hdc,xPointer- (scrollV) * (-15), yPointer, str, 4);
 			xPointer += 40;
@@ -2037,41 +2493,48 @@ void BKTAB(HDC hdc){
 				RectErase.bottom = RectErase.top + 17; // 아래쪽 y 좌표 (가정한 높이를 사용)
 
 
+				//커서 따라 스크롤 이동
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos += 10;
+	scrollV -=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+	si.nPos -= 10;
+	scrollV +=10;
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+
+	}
+
+
+
 				InvalidateRect(hWnd,NULL,FALSE);
 				UpdateWindow(hWnd);
 
-				int x= 0;
-				int y=0;
-					HDC hdc = GetDC(hWnd);
-					for(int i =0; i< textCount; i++) {
-					
-					if(textCount > 0 &&texts[i].count == 0 && texts[i].text[0] == '\0'){
-					x= 0;
-					y += 17;
-					continue;
-					}
-					if(textCount >0 && texts[i].count >= 15){
-				
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					x += texts[i].count;
-					
-					continue;
-					}
-					
-						
-						TextOut(hdc,x- (scrollV) * (-15), y - (scrollH)*15, texts[i].text, 1);
-						
-					
-					
-					
-					x += 10;
-					
-					continue;
-					}
+		
 				
 
 
