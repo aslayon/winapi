@@ -264,6 +264,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			case VK_RETURN:{
 				Return(hdc);
+
+					if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+	while(xPointer- (scrollV) * (-15)>Widthh-50){
+	si.nPos += 10;
+	scrollV -=10;
+	}
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+			ShowCaret(hWnd);
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+	while(xPointer- (scrollV) * (-15)<0 ){
+	si.nPos -= 10;
+	scrollV +=10;
+	}
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+			ShowCaret(hWnd);
+	}
+
+
 						   }
 					SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
 			ShowCaret(hWnd);
@@ -275,6 +316,45 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			case VK_BACK:{
 			
             Back(hdc);
+				if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+	while(xPointer- (scrollV) * (-15)>Widthh-50){
+	si.nPos += 10;
+	scrollV -=10;
+	}
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+			ShowCaret(hWnd);
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+	while(xPointer- (scrollV) * (-15)<0 ){
+	si.nPos -= 10;
+	scrollV +=10;
+	}
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+			ShowCaret(hWnd);
+	}
+			break;
 							 }
 
 
@@ -2297,6 +2377,49 @@ void Back(HDC hdc){
     int xPos, nScrollCode;
 	HideCaret(hWnd);
     // 현재 수평 스크롤 정보를 가져옵니다.
+
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+	while(xPointer- (scrollV) * (-15)>Widthh-50){
+	si.nPos += 10;
+	scrollV -=10;
+	}
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+		ShowCaret(hWnd);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+	while(xPointer- (scrollV) * (-15)<0){
+	si.nPos -= 10;
+	scrollV +=10;
+	}
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+		ShowCaret(hWnd);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+	}
+
+
+
+
 	ZeroMemory(&si, sizeof(si));
     si.cbSize = sizeof(si);
     si.fMask = SIF_ALL;
@@ -2350,6 +2473,52 @@ void Back(HDC hdc){
 
 
 							//커서 따라 스크롤 이동
+
+
+
+
+    // 현재 수평 스크롤 정보를 가져옵니다.
+
+	if(xPointer- (scrollV) * (-15)>Widthh-50)
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+	while(xPointer- (scrollV) * (-15)>Widthh-50){
+	si.nPos += 10;
+	scrollV -=10;
+	}
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+		ShowCaret(hWnd);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+	}
+	if(xPointer- (scrollV) * (-15)<0 )
+	{
+	SCROLLINFO si;
+    int xPos, nScrollCode;
+	HideCaret(hWnd);
+    // 현재 수평 스크롤 정보를 가져옵니다.
+	ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+	while(xPointer- (scrollV) * (-15)<0){
+	si.nPos -= 10;
+	scrollV +=10;
+	}
+	 SetScrollPos(hWnd, SB_HORZ, si.nPos, TRUE);
+	InvalidateRect(hWnd,NULL,FALSE);
+		ShowCaret(hWnd);
+	SetCaretPos(xPointer- (scrollV) * (-15),yPointer - (scrollH)*15);
+	}
+
+
 	if(yPointer - (scrollH)*15>Heightt-50)
 	{
 	SCROLLINFO si;
