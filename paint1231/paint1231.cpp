@@ -22,9 +22,9 @@ bool pen = FALSE;
 bool eraser = FALSE;
 void CreateThicknessTable(const WCHAR* name, LONG left, LONG top, LONG right, LONG bottom, HMENU id, HWND hWnd, HINSTANCE hInst);
 void SetThickness(HWND hWnd,HDC hdc);
-
-
-
+POINT Drawsquare(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam,POINT stPos) ;
+POINT  DrawRectangle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam);
+POINT  DrawCircle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam);
 
 
 // 전역 변수:
@@ -36,7 +36,9 @@ HBITMAP memBitmap;
 POINT stPos;
 int thickness = 5;
 BOOL bImageChanged = TRUE;
-
+bool circle = FALSE;
+bool square = FALSE;
+BOOL isDrawing = FALSE;
 
 // 이 코드 모듈에 들어 있는 함수의 정방향 선언입니다.
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -176,7 +178,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		CreateButton(L"5",549,75,25,25,(HMENU)17, hWnd, hInst); 
         CreateButton(L"7", 579, 75, 25, 25, (HMENU)18, hWnd, hInst);
 		CreateButton(L"9",609,75,25,25,(HMENU)19, hWnd, hInst); 
-        
+		CreateButton(L"ㅇ",855,20,50,50,(HMENU)3, hWnd, hInst); 
+        CreateButton(L"ㅁ",855,75,50,50,(HMENU)4, hWnd, hInst); 
 
 
         //버튼 생성 및 이미지 씌우기
@@ -209,11 +212,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case 1:
 			pen = TRUE;
 			eraser = FALSE;
+			circle = FALSE;
+			square = FALSE;
 			//TextOut(hdc,100,100,L"test1",5);
 			break;
 		case 2:
 			pen = FALSE;
 			eraser = TRUE;
+			circle = FALSE;
+			square = FALSE;
+			//TextOut(hdc,100,100,L"test2",5);
+			break;
+		case 3:
+			pen = FALSE;
+			eraser = FALSE;
+			circle = TRUE;
+			square = FALSE;
+			//TextOut(hdc,100,100,L"test1",5);
+			break;
+		case 4:
+			pen = FALSE;
+			eraser = TRUE;
+			circle = FALSE;
+			square = TRUE;
 			//TextOut(hdc,100,100,L"test2",5);
 			break;
 		case 15:
@@ -279,6 +300,64 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
 				ReleaseDC(hWnd, hdc);
 			}
+			else if(square == TRUE){
+				
+				if(isDrawing == FALSE){
+					isDrawing = TRUE;
+				}
+				HDC hdcBuffer;
+				HBITMAP hbmBuffer, hbmOld;
+				
+
+    
+				hdcBuffer = CreateCompatibleDC(hdc);
+				hbmBuffer = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
+				hbmOld = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
+
+				BitBlt(hdcBuffer, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
+
+
+				DrawRectangle( hWnd,  hdcBuffer,  wParam,  lParam);
+
+
+				BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
+				
+				BitBlt(hdc, 0, 0, rect.right, rect.bottom, hdcBuffer, 0, 0, SRCCOPY);
+
+				BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+				SelectObject(hdcBuffer, hbmOld);
+				DeleteObject(hbmBuffer);
+				DeleteDC(hdcBuffer);
+			}
+			else if(circle == TRUE){
+				if(isDrawing == FALSE){
+					isDrawing = TRUE;
+				}
+				HDC hdcBuffer;
+				HBITMAP hbmBuffer, hbmOld;
+				
+
+    
+				hdcBuffer = CreateCompatibleDC(hdc);
+				hbmBuffer = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
+				hbmOld = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
+
+				BitBlt(hdcBuffer, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
+
+
+				DrawCircle( hWnd,  hdcBuffer,  wParam,  lParam);
+
+
+				BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
+				
+				BitBlt(hdc, 0, 0, rect.right, rect.bottom, hdcBuffer, 0, 0, SRCCOPY);
+
+				BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+				SelectObject(hdcBuffer, hbmOld);
+				DeleteObject(hbmBuffer);
+				DeleteDC(hdcBuffer);
+				
+			}
 			
 		
 		}
@@ -293,7 +372,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     
     case WM_LBUTTONUP:
-    
+		if(isDrawing == TRUE && square == TRUE){
+			//TextOut(memDC,100,100,L"test1",5);
+			hdc = GetDC(hWnd);
+	
+			RECT rect;
+			GetClientRect(hWnd,&rect);
+
+			DrawCircle( hWnd,  memDC,  wParam,  lParam);
+			BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+			isDrawing = FALSE;
+			ReleaseDC(hWnd,hdc);
+		}
+		if(isDrawing == TRUE && circle == TRUE){
+			//TextOut(memDC,100,100,L"test1",5);
+			hdc = GetDC(hWnd);
+	
+			RECT rect;
+			GetClientRect(hWnd,&rect);
+
+			DrawCircle( hWnd,  memDC,  wParam,  lParam);
+			BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+			isDrawing = FALSE;
+			ReleaseDC(hWnd,hdc);
+		}
         break;
     
     case WM_RBUTTONDOWN:
@@ -558,6 +660,10 @@ POINT Draw(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam,POINT stPos)
     return stPos;
 }
 
+
+
+
+
 POINT Eraser(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam, POINT stPos)
 {
     HPEN newPen = CreatePen(PS_SOLID, thickness, RGB(255, 255, 255));
@@ -581,4 +687,77 @@ POINT Eraser(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam, POINT stPos)
 
 
     return stPos;
+}
+
+POINT DrawCircle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam) {
+		
+        int R = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"R"), SB_CTL);
+        int G = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"G"), SB_CTL);
+        int B = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"B"), SB_CTL);
+
+        HPEN newPen = CreatePen(PS_SOLID, thickness, RGB(R, G, B));
+		HBRUSH hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
+
+        HPEN oldPen = (HPEN)SelectObject(hdc, newPen);
+		HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+        POINT pos;
+        pos.x = GET_X_LPARAM(lParam);
+        pos.y = GET_Y_LPARAM(lParam);
+
+       
+		
+		//TextOut(hdc,100,100,L"test1",5);
+		
+		
+        Ellipse(hdc, stPos.x, stPos.y, pos.x, pos.y);
+
+        SelectObject(hdc, oldPen);
+		SelectObject(hdc, hOldBrush);
+        DeleteObject(newPen);
+		
+		
+		
+		
+		
+		bImageChanged = TRUE;
+		
+		return stPos;
+}
+
+// 직사각형을 그리는 함수
+POINT  DrawRectangle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam) {
+    
+        int R = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"R"), SB_CTL);
+        int G = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"G"), SB_CTL);
+        int B = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"B"), SB_CTL);
+
+        HPEN newPen = CreatePen(PS_SOLID, thickness, RGB(R, G, B));
+		HBRUSH hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
+
+        HPEN oldPen = (HPEN)SelectObject(hdc, newPen);
+		HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+        POINT pos;
+        pos.x = GET_X_LPARAM(lParam);
+        pos.y = GET_Y_LPARAM(lParam);
+
+       
+		
+		//TextOut(hdc,100,100,L"test1",5);
+		
+		
+        Rectangle(hdc, stPos.x, stPos.y, pos.x, pos.y);
+
+        SelectObject(hdc, oldPen);
+		SelectObject(hdc, hOldBrush);
+        DeleteObject(newPen);
+		
+		
+		
+		
+		
+		bImageChanged = TRUE;
+		
+		return stPos;
 }
