@@ -40,6 +40,9 @@ bool circle = FALSE;
 bool square = FALSE;
 BOOL isDrawing = FALSE;
 
+int count;
+
+
 // 이 코드 모듈에 들어 있는 함수의 정방향 선언입니다.
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
@@ -113,7 +116,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_PAINT1231));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_PAINT1231);
+	wcex.lpszMenuName	= NULL;
 	wcex.lpszClassName	= szWindowClass;
 	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
@@ -136,8 +139,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
-   hWnd = CreateWindow(szWindowClass, szTitle,  WS_MAXIMIZE| WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-      CW_USEDEFAULT, 0, 1100, 700, NULL, NULL, hInstance, NULL);
+   hWnd = CreateWindowW(szWindowClass, szTitle,  WS_MAXIMIZE| WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+      CW_USEDEFAULT, 0, 1100, 700, NULL, LoadMenu(hInstance,MAKEINTRESOURCE(IDC_PAINT1231)), hInstance, NULL);
 
    if (!hWnd)
    {
@@ -166,10 +169,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	ReleaseDC(hWnd, hdc);
 	hdc = GetDC(hWnd);
+	
+	
+	
 	ReleaseDC(hWnd, hdc);
 	switch (message)
 	{
 	case WM_CREATE:{
+		hdc = GetDC(hWnd);
 		CreateButton(L"Pen",800,20,50,50,(HMENU)1, hWnd, hInst); 
         CreateButton(L"Erase", 800, 75, 50, 50, (HMENU)2, hWnd, hInst);
 		
@@ -192,7 +199,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 		CreateBackPage(hWnd, hInst, &memDC , &memBitmap);
-		
+		RECT rect;
+		GetClientRect(hWnd,&rect);
+
+		SetColor(hWnd,memDC);
+		SetThickness(hWnd,memDC);
+
+		SetColor(hWnd,hdc);
+		SetThickness(hWnd,hdc);
+		ReleaseDC(hWnd,hdc);
+
+		BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
+			
+
 		break;
 					}
 	case WM_COMMAND:
@@ -209,6 +228,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
 			break;
+		case ID_32771:{
+			hdc = GetDC(hWnd);
+			
+			RECT rect;
+			GetClientRect(hWnd,&rect);
+			
+			
+			
+			
+			PatBlt(memDC,0,0,rect.right, rect.bottom, WHITENESS);
+			
+			BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+			SetColor(hWnd,hdc);
+			SetThickness(hWnd,hdc);
+			count = -1;
+			ReleaseDC(hWnd,hdc);
+			InvalidateRect(hWnd, NULL, FALSE);
+			UpdateWindow(hWnd);
+				  break; 
+				   }
 		case 1:
 			pen = TRUE;
 			eraser = FALSE;
@@ -232,8 +271,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case 4:
 			pen = FALSE;
-			eraser = TRUE;
-			circle = FALSE;
+			eraser = FALSE;
+			circle = TRUE;
 			square = TRUE;
 			//TextOut(hdc,100,100,L"test2",5);
 			break;
@@ -241,9 +280,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			
 			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"Thickness"),SB_CTL,1,TRUE);
 			thickness = 1;
-			SetThickness(hWnd,hdc);
-			SetThickness(hWnd,memDC);
-			
+			InvalidateRect(hWnd, NULL, FALSE);
+			UpdateWindow(hWnd);
+			ReleaseDC(hWnd, hdc);
 			break;
 		case 16:
 			
@@ -251,7 +290,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			thickness = 3;
 			InvalidateRect(hWnd, NULL, FALSE);
 			UpdateWindow(hWnd);
-			
+			ReleaseDC(hWnd, hdc);
 			break;
 		case 17:
 			
@@ -275,14 +314,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			thickness = 9;
 			InvalidateRect(hWnd, NULL, FALSE);
 			UpdateWindow(hWnd);
+			ReleaseDC(hWnd, hdc);
 			break;
+		
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		break;
 	case WM_MOUSEMOVE:{
 		hdc = GetDC(hWnd);
-	
+		
 		RECT rect;
 		GetClientRect(hWnd,&rect);
 		if (wParam == MK_LBUTTON && stPos.y >=150 && stPos.y <= rect.bottom - rect.top && stPos.x > rect.left && stPos.x < rect.right - rect.left){
@@ -379,7 +420,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RECT rect;
 			GetClientRect(hWnd,&rect);
 
-			DrawCircle( hWnd,  memDC,  wParam,  lParam);
+			DrawRectangle( hWnd,  memDC,  wParam,  lParam);
 			BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
 			isDrawing = FALSE;
 			ReleaseDC(hWnd,hdc);
@@ -409,16 +450,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_PAINT:
 		PAINTSTRUCT ps;
         hdc = BeginPaint(hWnd, &ps);
-		SetColor(hWnd,hdc);
-        SetColor(hWnd,memDC);
-		SetThickness(hWnd,hdc);
+		
+	
+		RECT rect;
+		GetClientRect(hWnd,&rect);
+		
+		
+		SetColor(hWnd,memDC);
+       
 		SetThickness(hWnd,memDC);
+		
 
-
+		
+		SetColor(hWnd,hdc);
+       
+		SetThickness(hWnd,hdc);
 		
 
 
         EndPaint(hWnd, &ps);
+		hdc = GetDC(hWnd);
+		if(count <= 0){
+		SetColor(hWnd,hdc);
+		SetThickness(hWnd,hdc);
+		count++;
+		}
+		ReleaseDC(hWnd,hdc);
 		break;
 	case WM_DESTROY:
 		DeleteObject(memBitmap);
