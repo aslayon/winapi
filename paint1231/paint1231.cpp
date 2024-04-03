@@ -7,10 +7,11 @@
 #define MAX_LOADSTRING 100
 #include <iostream>
 #include <string.h>
+#include "Resource.h"
 HDC hdc;
 void CreateButton(const WCHAR* name, LONG x, LONG y, LONG width, LONG height, HMENU id, HWND hWnd, HINSTANCE hInst);
 
-void CreateRGBTable(const WCHAR* name, LONG left, LONG top, LONG right, LONG bottom, HMENU id, HWND hWnd, HINSTANCE hInst);
+void CreateRGB(const WCHAR* name, LONG left, LONG top, LONG right, LONG bottom, HMENU id, HWND hWnd, HINSTANCE hInst);
 
 void SetMode(WPARAM wParam, LPARAM lParam,HWND hWnd);
 void SetScrollFunction(WPARAM wParam, LPARAM lParam);
@@ -18,8 +19,7 @@ void SetColor(HWND hWnd,HDC hdc);
 void CreateBackPage(HWND hWnd, HINSTANCE hInst, HDC* memDC , HBITMAP* memBitmap);
 POINT Draw(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam,POINT stPos) ;
 POINT Eraser(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam, POINT stPos);
-bool pen = FALSE;
-bool eraser = FALSE;
+
 void CreateThicknessTable(const WCHAR* name, LONG left, LONG top, LONG right, LONG bottom, HMENU id, HWND hWnd, HINSTANCE hInst);
 void SetThickness(HWND hWnd,HDC hdc);
 POINT Drawsquare(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam,POINT stPos) ;
@@ -32,12 +32,14 @@ HINSTANCE hInst;								// 현재 인스턴스입니다.
 TCHAR szTitle[MAX_LOADSTRING];					// 제목 표시줄 텍스트입니다.
 TCHAR szWindowClass[MAX_LOADSTRING];			// 기본 창 클래스 이름입니다.
 HDC memDC;
-HBITMAP memBitmap;
+HBITMAP memBitmap;	
 POINT stPos;
 int thickness = 5;
 BOOL bImageChanged = TRUE;
 bool circle = FALSE;
 bool square = FALSE;
+bool pen = FALSE;
+bool eraser = FALSE;
 BOOL isDrawing = FALSE;
 
 int count;
@@ -192,7 +194,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         //버튼 생성 및 이미지 씌우기
 
         //색상 테이블 생성
-        CreateRGBTable(L"RGBtable", 20, 30, 0, 120, (HMENU)10, hWnd, hInst);
+        CreateRGB(L"RGBtable", 20, 30, 0, 120, (HMENU)10, hWnd, hInst);
+
+
+		CreateButton(L"red",330,40,25,25,(HMENU)41, hWnd, hInst); 
+        CreateButton(L"blue", 360, 40, 25, 25, (HMENU)42, hWnd, hInst);
+		CreateButton(L"green",360,75,25,25,(HMENU)44, hWnd, hInst);
+		CreateButton(L"black",330,75,25,25,(HMENU)43, hWnd, hInst); 
+		 
 
 		//두께 테이블 생성
 		CreateThicknessTable(L"Thickness", 80, 30, 160, 120, (HMENU)30, hWnd, hInst);
@@ -213,7 +222,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			
 
 		break;
-					}
+					}/*
+	case WM_CTLCOLORBTN:
+	{
+    HDC hdcButton = (HDC)wParam;
+    HWND hwndButton = (HWND)lParam;
+    switch (GetDlgCtrlID(hwndButton))
+    {
+    case 41: // red 버튼
+        SetBkColor(hdcButton, RGB(255, 0, 0));
+        return (LRESULT)CreateSolidBrush(RGB(255, 0, 0));
+    case 42: // blue 버튼
+        SetBkColor(hdcButton, RGB(0, 0, 255));
+        return (LRESULT)CreateSolidBrush(RGB(0, 0, 255));
+    case 43: // black 버튼
+        SetBkColor(hdcButton, RGB(0, 0, 0));
+        return (LRESULT)CreateSolidBrush(RGB(0, 0, 0));
+    case 44: // green 버튼
+        SetBkColor(hdcButton, RGB(0, 255, 0));
+        return (LRESULT)CreateSolidBrush(RGB(0, 255, 0));
+    default:
+        break;
+    }*/
+	}
 	case WM_COMMAND:
 		
 	
@@ -316,7 +347,51 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			UpdateWindow(hWnd);
 			ReleaseDC(hWnd, hdc);
 			break;
+		case 41:
+			
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"R"),SB_CTL,255,TRUE);
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"G"),SB_CTL,0,TRUE);
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"B"),SB_CTL,0,TRUE);
+			SetColor(hWnd,hdc);
+			count = -1;
+			InvalidateRect(hWnd, NULL, FALSE);
+			UpdateWindow(hWnd);
+			ReleaseDC(hWnd, hdc);
+			break;
+		case 42:
 		
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"R"),SB_CTL,0,TRUE);
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"G"),SB_CTL,0,TRUE);
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"B"),SB_CTL,255,TRUE);
+			SetColor(hWnd,hdc);
+			count = -1;
+			InvalidateRect(hWnd, NULL, FALSE);
+			UpdateWindow(hWnd);
+			ReleaseDC(hWnd, hdc);
+			break;
+		case 43:
+			
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"R"),SB_CTL,0,TRUE);
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"G"),SB_CTL,0,TRUE);
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"B"),SB_CTL,0,TRUE);
+			SetColor(hWnd,hdc);
+			count = -1;
+			InvalidateRect(hWnd, NULL, FALSE);
+			UpdateWindow(hWnd);
+			ReleaseDC(hWnd, hdc);
+			break;
+
+		case 44:
+			
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"R"),SB_CTL,0,TRUE);
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"G"),SB_CTL,255,TRUE);
+			SetScrollPos(FindWindowExW(hWnd,NULL,L"scrollbar", L"B"),SB_CTL,0,TRUE);
+			SetColor(hWnd,hdc);
+			count = -1;
+			InvalidateRect(hWnd, NULL, FALSE);
+			UpdateWindow(hWnd);
+			ReleaseDC(hWnd, hdc);
+			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -355,17 +430,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				hbmBuffer = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
 				hbmOld = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
 
-				BitBlt(hdcBuffer, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
-
-
+				BitBlt(hdcBuffer, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+				
 				DrawRectangle( hWnd,  hdcBuffer,  wParam,  lParam);
 
 
-				BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
+				//BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
 				
 				BitBlt(hdc, 0, 0, rect.right, rect.bottom, hdcBuffer, 0, 0, SRCCOPY);
 
-				BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+				//BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+				
 				SelectObject(hdcBuffer, hbmOld);
 				DeleteObject(hbmBuffer);
 				DeleteDC(hdcBuffer);
@@ -383,17 +458,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				hbmBuffer = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
 				hbmOld = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
 
-				BitBlt(hdcBuffer, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
+				BitBlt(hdcBuffer, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
 
 
 				DrawCircle( hWnd,  hdcBuffer,  wParam,  lParam);
 
 
-				BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
+				//BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
 				
 				BitBlt(hdc, 0, 0, rect.right, rect.bottom, hdcBuffer, 0, 0, SRCCOPY);
 
-				BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+				//BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
 				SelectObject(hdcBuffer, hbmOld);
 				DeleteObject(hbmBuffer);
 				DeleteDC(hdcBuffer);
@@ -420,8 +495,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RECT rect;
 			GetClientRect(hWnd,&rect);
 
-			DrawRectangle( hWnd,  memDC,  wParam,  lParam);
-			BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+			//DrawRectangle( hWnd,  memDC,  wParam,  lParam);
+			BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
 			isDrawing = FALSE;
 			ReleaseDC(hWnd,hdc);
 		}
@@ -432,8 +507,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RECT rect;
 			GetClientRect(hWnd,&rect);
 
-			DrawCircle( hWnd,  memDC,  wParam,  lParam);
-			BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+			//DrawCircle( hWnd,  memDC,  wParam,  lParam);
+			BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
 			isDrawing = FALSE;
 			ReleaseDC(hWnd,hdc);
 		}
@@ -532,7 +607,7 @@ void CreateButton(const WCHAR* name,LONG x,LONG y,LONG width ,LONG height, HMENU
     CreateWindowW(L"button", name, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, x,y,width,height, hWnd, id, hInst,NULL);
 }
 
-void CreateRGBTable(const WCHAR* name, LONG left, LONG top, LONG right, LONG bottom, HMENU id, HWND hWnd, HINSTANCE hInst)
+void CreateRGB(const WCHAR* name, LONG left, LONG top, LONG right, LONG bottom, HMENU id, HWND hWnd, HINSTANCE hInst)
 {
     
     //RGB의 스크롤 바 생성 및 범위 설정
