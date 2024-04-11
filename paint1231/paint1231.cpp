@@ -1,4 +1,4 @@
-// paint1231.cpp : ÀÀ¿ë ÇÁ·Î±×·¥¿¡ ´ëÇÑ ÁøÀÔÁ¡À» Á¤ÀÇÇÕ´Ï´Ù.
+// paint1231.cpp : ì‘ìš© í”„ë¡œê·¸ë¨ì— ëŒ€í•œ ì§„ì…ì ì„ ì •ì˜í•©ë‹ˆë‹¤.
 //
 
 #include "stdafx.h"
@@ -25,12 +25,13 @@ void SetThickness(HWND hWnd,HDC hdc);
 POINT Drawsquare(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam,POINT stPos) ;
 POINT  DrawRectangle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam);
 POINT  DrawCircle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam);
+POINT  FillCircle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam);
+POINT  FillRectangle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam);
 
-
-// Àü¿ª º¯¼ö:
-HINSTANCE hInst;								// ÇöÀç ÀÎ½ºÅÏ½ºÀÔ´Ï´Ù.
-TCHAR szTitle[MAX_LOADSTRING];					// Á¦¸ñ Ç¥½ÃÁÙ ÅØ½ºÆ®ÀÔ´Ï´Ù.
-TCHAR szWindowClass[MAX_LOADSTRING];			// ±âº» Ã¢ Å¬·¡½º ÀÌ¸§ÀÔ´Ï´Ù.
+// ì „ì—­ ë³€ìˆ˜:
+HINSTANCE hInst;								// í˜„ì¬ ì¸ìŠ¤í„´ìŠ¤ì…ë‹ˆë‹¤.
+TCHAR szTitle[MAX_LOADSTRING];					// ì œëª© í‘œì‹œì¤„ í…ìŠ¤íŠ¸ì…ë‹ˆë‹¤.
+TCHAR szWindowClass[MAX_LOADSTRING];			// ê¸°ë³¸ ì°½ í´ë˜ìŠ¤ ì´ë¦„ì…ë‹ˆë‹¤.
 HDC memDC;
 HBITMAP memBitmap;	
 POINT stPos;
@@ -41,11 +42,11 @@ bool square = FALSE;
 bool pen = FALSE;
 bool eraser = FALSE;
 BOOL isDrawing = FALSE;
-
+bool fill = FALSE;
 int count;
 
 
-// ÀÌ ÄÚµå ¸ğµâ¿¡ µé¾î ÀÖ´Â ÇÔ¼öÀÇ Á¤¹æÇâ ¼±¾ğÀÔ´Ï´Ù.
+// ì´ ì½”ë“œ ëª¨ë“ˆì— ë“¤ì–´ ìˆëŠ” í•¨ìˆ˜ì˜ ì •ë°©í–¥ ì„ ì–¸ì…ë‹ˆë‹¤.
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -59,16 +60,16 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
- 	// TODO: ¿©±â¿¡ ÄÚµå¸¦ ÀÔ·ÂÇÕ´Ï´Ù.
+ 	// TODO: ì—¬ê¸°ì— ì½”ë“œë¥¼ ì…ë ¥í•©ë‹ˆë‹¤.
 	MSG msg;
 	HACCEL hAccelTable;
 
-	// Àü¿ª ¹®ÀÚ¿­À» ÃÊ±âÈ­ÇÕ´Ï´Ù.
+	// ì „ì—­ ë¬¸ìì—´ì„ ì´ˆê¸°í™”í•©ë‹ˆë‹¤.
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_PAINT1231, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
-	// ÀÀ¿ë ÇÁ·Î±×·¥ ÃÊ±âÈ­¸¦ ¼öÇàÇÕ´Ï´Ù.
+	// ì‘ìš© í”„ë¡œê·¸ë¨ ì´ˆê¸°í™”ë¥¼ ìˆ˜í–‰í•©ë‹ˆë‹¤.
 	if (!InitInstance (hInstance, nCmdShow))
 	{
 		return FALSE;
@@ -76,7 +77,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_PAINT1231));
 
-	// ±âº» ¸Ş½ÃÁö ·çÇÁÀÔ´Ï´Ù.
+	// ê¸°ë³¸ ë©”ì‹œì§€ ë£¨í”„ì…ë‹ˆë‹¤.
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
 		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
@@ -92,17 +93,17 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 
 //
-//  ÇÔ¼ö: MyRegisterClass()
+//  í•¨ìˆ˜: MyRegisterClass()
 //
-//  ¸ñÀû: Ã¢ Å¬·¡½º¸¦ µî·ÏÇÕ´Ï´Ù.
+//  ëª©ì : ì°½ í´ë˜ìŠ¤ë¥¼ ë“±ë¡í•©ë‹ˆë‹¤.
 //
-//  ¼³¸í:
+//  ì„¤ëª…:
 //
-//    Windows 95¿¡¼­ Ãß°¡µÈ 'RegisterClassEx' ÇÔ¼öº¸´Ù ¸ÕÀú
-//    ÇØ´ç ÄÚµå°¡ Win32 ½Ã½ºÅÛ°ú È£È¯µÇµµ·Ï
-//    ÇÏ·Á´Â °æ¿ì¿¡¸¸ ÀÌ ÇÔ¼ö¸¦ »ç¿ëÇÕ´Ï´Ù. ÀÌ ÇÔ¼ö¸¦ È£ÃâÇØ¾ß
-//    ÇØ´ç ÀÀ¿ë ÇÁ·Î±×·¥¿¡ ¿¬°áµÈ
-//    '¿Ã¹Ù¸¥ Çü½ÄÀÇ' ÀÛÀº ¾ÆÀÌÄÜÀ» °¡Á®¿Ã ¼ö ÀÖ½À´Ï´Ù.
+//    Windows 95ì—ì„œ ì¶”ê°€ëœ 'RegisterClassEx' í•¨ìˆ˜ë³´ë‹¤ ë¨¼ì €
+//    í•´ë‹¹ ì½”ë“œê°€ Win32 ì‹œìŠ¤í…œê³¼ í˜¸í™˜ë˜ë„ë¡
+//    í•˜ë ¤ëŠ” ê²½ìš°ì—ë§Œ ì´ í•¨ìˆ˜ë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤. ì´ í•¨ìˆ˜ë¥¼ í˜¸ì¶œí•´ì•¼
+//    í•´ë‹¹ ì‘ìš© í”„ë¡œê·¸ë¨ì— ì—°ê²°ëœ
+//    'ì˜¬ë°”ë¥¸ í˜•ì‹ì˜' ì‘ì€ ì•„ì´ì½˜ì„ ê°€ì ¸ì˜¬ ìˆ˜ ìˆìŠµë‹ˆë‹¤.
 //
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
@@ -126,20 +127,20 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 //
-//   ÇÔ¼ö: InitInstance(HINSTANCE, int)
+//   í•¨ìˆ˜: InitInstance(HINSTANCE, int)
 //
-//   ¸ñÀû: ÀÎ½ºÅÏ½º ÇÚµéÀ» ÀúÀåÇÏ°í ÁÖ Ã¢À» ¸¸µì´Ï´Ù.
+//   ëª©ì : ì¸ìŠ¤í„´ìŠ¤ í•¸ë“¤ì„ ì €ì¥í•˜ê³  ì£¼ ì°½ì„ ë§Œë“­ë‹ˆë‹¤.
 //
-//   ¼³¸í:
+//   ì„¤ëª…:
 //
-//        ÀÌ ÇÔ¼ö¸¦ ÅëÇØ ÀÎ½ºÅÏ½º ÇÚµéÀ» Àü¿ª º¯¼ö¿¡ ÀúÀåÇÏ°í
-//        ÁÖ ÇÁ·Î±×·¥ Ã¢À» ¸¸µç ´ÙÀ½ Ç¥½ÃÇÕ´Ï´Ù.
+//        ì´ í•¨ìˆ˜ë¥¼ í†µí•´ ì¸ìŠ¤í„´ìŠ¤ í•¸ë“¤ì„ ì „ì—­ ë³€ìˆ˜ì— ì €ì¥í•˜ê³ 
+//        ì£¼ í”„ë¡œê·¸ë¨ ì°½ì„ ë§Œë“  ë‹¤ìŒ í‘œì‹œí•©ë‹ˆë‹¤.
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    HWND hWnd;
 
-   hInst = hInstance; // ÀÎ½ºÅÏ½º ÇÚµéÀ» Àü¿ª º¯¼ö¿¡ ÀúÀåÇÕ´Ï´Ù.
+   hInst = hInstance; // ì¸ìŠ¤í„´ìŠ¤ í•¸ë“¤ì„ ì „ì—­ ë³€ìˆ˜ì— ì €ì¥í•©ë‹ˆë‹¤.
 
    hWnd = CreateWindowW(szWindowClass, szTitle,  WS_MAXIMIZE| WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
       CW_USEDEFAULT, 0, 1100, 700, NULL, LoadMenu(hInstance,MAKEINTRESOURCE(IDC_PAINT1231)), hInstance, NULL);
@@ -156,13 +157,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 }
 
 //
-//  ÇÔ¼ö: WndProc(HWND, UINT, WPARAM, LPARAM)
+//  í•¨ìˆ˜: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
-//  ¸ñÀû: ÁÖ Ã¢ÀÇ ¸Ş½ÃÁö¸¦ Ã³¸®ÇÕ´Ï´Ù.
+//  ëª©ì : ì£¼ ì°½ì˜ ë©”ì‹œì§€ë¥¼ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 //
-//  WM_COMMAND	- ÀÀ¿ë ÇÁ·Î±×·¥ ¸Ş´º¸¦ Ã³¸®ÇÕ´Ï´Ù.
-//  WM_PAINT	- ÁÖ Ã¢À» ±×¸³´Ï´Ù.
-//  WM_DESTROY	- Á¾·á ¸Ş½ÃÁö¸¦ °Ô½ÃÇÏ°í ¹İÈ¯ÇÕ´Ï´Ù.
+//  WM_COMMAND	- ì‘ìš© í”„ë¡œê·¸ë¨ ë©”ë‰´ë¥¼ ì²˜ë¦¬í•©ë‹ˆë‹¤.
+//  WM_PAINT	- ì£¼ ì°½ì„ ê·¸ë¦½ë‹ˆë‹¤.
+//  WM_DESTROY	- ì¢…ë£Œ ë©”ì‹œì§€ë¥¼ ê²Œì‹œí•˜ê³  ë°˜í™˜í•©ë‹ˆë‹¤.
 //
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -187,13 +188,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		CreateButton(L"5",549,75,25,25,(HMENU)17, hWnd, hInst); 
         CreateButton(L"7", 579, 75, 25, 25, (HMENU)18, hWnd, hInst);
 		CreateButton(L"9",609,75,25,25,(HMENU)19, hWnd, hInst); 
-		CreateButton(L"¤·",855,20,50,50,(HMENU)3, hWnd, hInst); 
-        CreateButton(L"¤±",855,75,50,50,(HMENU)4, hWnd, hInst); 
+		CreateButton(L"ã…‡",855,20,50,50,(HMENU)3, hWnd, hInst); 
+        CreateButton(L"ã…",855,75,50,50,(HMENU)4, hWnd, hInst); 
+		CreateButton(L"fill",910,20,50,105,(HMENU)5, hWnd, hInst); 
 
+        //ë²„íŠ¼ ìƒì„± ë° ì´ë¯¸ì§€ ì”Œìš°ê¸°
 
-        //¹öÆ° »ı¼º ¹× ÀÌ¹ÌÁö ¾º¿ì±â
-
-        //»ö»ó Å×ÀÌºí »ı¼º
+        //ìƒ‰ìƒ í…Œì´ë¸” ìƒì„±
         CreateRGB(L"RGBtable", 20, 30, 0, 120, (HMENU)10, hWnd, hInst);
 
 
@@ -203,7 +204,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		CreateButton(L"black",330,75,25,25,(HMENU)43, hWnd, hInst); 
 		 
 
-		//µÎ²² Å×ÀÌºí »ı¼º
+		//ë‘ê»˜ í…Œì´ë¸” ìƒì„±
 		CreateThicknessTable(L"Thickness", 80, 30, 160, 120, (HMENU)30, hWnd, hInst);
 
 
@@ -222,35 +223,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			
 
 		break;
-					}/*
-	case WM_CTLCOLORBTN:
-	{
-    HDC hdcButton = (HDC)wParam;
-    HWND hwndButton = (HWND)lParam;
-    switch (GetDlgCtrlID(hwndButton))
-    {
-    case 41: // red ¹öÆ°
-        SetBkColor(hdcButton, RGB(255, 0, 0));
-        return (LRESULT)CreateSolidBrush(RGB(255, 0, 0));
-    case 42: // blue ¹öÆ°
-        SetBkColor(hdcButton, RGB(0, 0, 255));
-        return (LRESULT)CreateSolidBrush(RGB(0, 0, 255));
-    case 43: // black ¹öÆ°
-        SetBkColor(hdcButton, RGB(0, 0, 0));
-        return (LRESULT)CreateSolidBrush(RGB(0, 0, 0));
-    case 44: // green ¹öÆ°
-        SetBkColor(hdcButton, RGB(0, 255, 0));
-        return (LRESULT)CreateSolidBrush(RGB(0, 255, 0));
-    default:
-        break;
-    }*/
-	}
+					}
+	
 	case WM_COMMAND:
 		
 	
 		wmId    = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
-		// ¸Ş´º ¼±ÅÃÀ» ±¸¹® ºĞ¼®ÇÕ´Ï´Ù.
+		// ë©”ë‰´ ì„ íƒì„ êµ¬ë¬¸ ë¶„ì„í•©ë‹ˆë‹¤.
 		switch (wmId)
 		{
 		case IDM_ABOUT:
@@ -306,6 +286,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			circle = TRUE;
 			square = TRUE;
 			//TextOut(hdc,100,100,L"test2",5);
+			break;
+		case 5:
+			if(fill == TRUE){ fill = FALSE; break;}
+			if(fill == FALSE) fill = TRUE;
 			break;
 		case 15:
 			
@@ -406,7 +390,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				stPos = Draw(hWnd,memDC,wParam,lParam,stPos);
 				
 				
-				BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+				BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0,  SRCCOPY);
 				ReleaseDC(hWnd, hdc);
 			}
 			else if(eraser == TRUE){
@@ -421,57 +405,59 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if(isDrawing == FALSE){
 					isDrawing = TRUE;
 				}
-				HDC hdcBuffer;
-				HBITMAP hbmBuffer, hbmOld;
+				//HDC hdcBuffer;
+				//HBITMAP hbmBuffer, hbmOld;
 				
 
     
-				hdcBuffer = CreateCompatibleDC(hdc);
-				hbmBuffer = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
-				hbmOld = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
+				//hdcBuffer = CreateCompatibleDC(hdc);
+				//hbmBuffer = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
+				//hbmOld = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
 
-				BitBlt(hdcBuffer, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
-				
-				DrawRectangle( hWnd,  hdcBuffer,  wParam,  lParam);
-
+				BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+				if(fill == FALSE)
+					DrawRectangle( hWnd,  hdc,  wParam,  lParam);
+				else
+					FillRectangle(hWnd,hdc,wParam,lParam);
 
 				//BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
 				
-				BitBlt(hdc, 0, 0, rect.right, rect.bottom, hdcBuffer, 0, 0, SRCCOPY);
+				//BitBlt(hdc, 0, 0, rect.right, rect.bottom, hdcBuffer, 0, 0, SRCCOPY);
 
 				//BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
 				
-				SelectObject(hdcBuffer, hbmOld);
-				DeleteObject(hbmBuffer);
-				DeleteDC(hdcBuffer);
+				//SelectObject(hdcBuffer, hbmOld);
+				//DeleteObject(hbmBuffer);
+				//DeleteDC(hdcBuffer);
 			}
 			else if(circle == TRUE){
 				if(isDrawing == FALSE){
 					isDrawing = TRUE;
 				}
-				HDC hdcBuffer;
-				HBITMAP hbmBuffer, hbmOld;
+				//HDC hdcBuffer;
+				//HBITMAP hbmBuffer, hbmOld;
 				
 
     
-				hdcBuffer = CreateCompatibleDC(hdc);
-				hbmBuffer = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
-				hbmOld = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
+				//hdcBuffer = CreateCompatibleDC(hdc);
+				//hbmBuffer = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
+				//hbmOld = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
 
-				BitBlt(hdcBuffer, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
+				BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
 
-
-				DrawCircle( hWnd,  hdcBuffer,  wParam,  lParam);
-
+				if(fill == FALSE)
+					DrawCircle( hWnd,  hdc,  wParam,  lParam);
+				else
+					FillCircle( hWnd,  hdc,  wParam,  lParam);
 
 				//BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
 				
-				BitBlt(hdc, 0, 0, rect.right, rect.bottom, hdcBuffer, 0, 0, SRCCOPY);
+				//BitBlt(hdc, 0, 0, rect.right, rect.bottom, hdcBuffer, 0, 0, SRCCOPY);
 
 				//BitBlt(hdc, 0, 0, rect.right, rect.bottom, memDC, 0, 0, SRCCOPY);
-				SelectObject(hdcBuffer, hbmOld);
-				DeleteObject(hbmBuffer);
-				DeleteDC(hdcBuffer);
+				//SelectObject(hdcBuffer, hbmOld);
+				//DeleteObject(hbmBuffer);
+				//DeleteDC(hdcBuffer);
 				
 			}
 			
@@ -482,9 +468,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	 case WM_LBUTTONDOWN:
     
-        //ÁÂ Å¬¸¯½Ã ÃÊ±â ÁÂÇ¥ °ª ÀúÀå
+        //ì¢Œ í´ë¦­ì‹œ ì´ˆê¸° ì¢Œí‘œ ê°’ ì €ì¥
         stPos.x = GET_X_LPARAM(lParam);
         stPos.y = GET_Y_LPARAM(lParam);
+
+		
+		RECT rect;
+		GetClientRect(hWnd,&rect);
+
+		BitBlt(memDC, 0, 0, rect.right, rect.bottom, hdc, 0, 0, SRCCOPY);
+
         break;
     
     case WM_LBUTTONUP:
@@ -527,7 +520,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         hdc = BeginPaint(hWnd, &ps);
 		
 	
-		RECT rect;
+		//RECT rect;
 		GetClientRect(hWnd,&rect);
 		
 		
@@ -582,7 +575,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-// Á¤º¸ ´ëÈ­ »óÀÚÀÇ ¸Ş½ÃÁö Ã³¸®±âÀÔ´Ï´Ù.
+// ì •ë³´ ëŒ€í™” ìƒìì˜ ë©”ì‹œì§€ ì²˜ë¦¬ê¸°ì…ë‹ˆë‹¤.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
@@ -610,7 +603,7 @@ void CreateButton(const WCHAR* name,LONG x,LONG y,LONG width ,LONG height, HMENU
 void CreateRGB(const WCHAR* name, LONG left, LONG top, LONG right, LONG bottom, HMENU id, HWND hWnd, HINSTANCE hInst)
 {
     
-    //RGBÀÇ ½ºÅ©·Ñ ¹Ù »ı¼º ¹× ¹üÀ§ ¼³Á¤
+    //RGBì˜ ìŠ¤í¬ë¡¤ ë°” ìƒì„± ë° ë²”ìœ„ ì„¤ì •
     CreateWindowW(L"scrollbar", L"R", WS_CHILD | WS_VISIBLE | SBS_HORZ, right+20, top+10, 180, 15, hWnd, id, hInst, NULL);
     SetScrollRange(FindWindowExW(hWnd,NULL,L"scrollbar", L"R"), SB_CTL, 0, 255, TRUE);
     CreateWindowW(L"scrollbar", L"G", WS_CHILD | WS_VISIBLE | SBS_HORZ, right+20, top+35, 180, 15, hWnd, id+1, hInst, NULL);
@@ -673,18 +666,18 @@ void SetColor(HWND hWnd,HDC hdc)
     }
 
 
-    //½ºÅ©·Ñ BarÀÇ °ª ¹Ş¾Æ¿À±â
+    //ìŠ¤í¬ë¡¤ Barì˜ ê°’ ë°›ì•„ì˜¤ê¸°
     int R = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"R"), SB_CTL);
     int G = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"G"), SB_CTL);
     int B = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"B"), SB_CTL);
 
     HBRUSH newBrush = CreateSolidBrush(RGB(R, G, B));
     HBRUSH OldBrush = (HBRUSH)SelectObject(hdc, newBrush);
-    //¼±ÅÃµÈ »ö»ó º¸¿©ÁÖ±â
+    //ì„ íƒëœ ìƒ‰ìƒ ë³´ì—¬ì£¼ê¸°
 	
     Rectangle(hdc, 280, 40, 320, 100);
 
-    //½ºÅ©·Ñ BarÀÇ °ª Ç¥½ÃÇØÁÖ±â
+    //ìŠ¤í¬ë¡¤ Barì˜ ê°’ í‘œì‹œí•´ì£¼ê¸°
     WCHAR text[10];
     wsprintf(text, L"R : %d", R );
 	TextOutW(hdc, 210, 40, L"R :         ", 12);
@@ -733,7 +726,7 @@ void SetThickness(HWND hWnd,HDC hdc)
 	
     
 
-    //½ºÅ©·Ñ BarÀÇ °ª Ç¥½ÃÇØÁÖ±â
+    //ìŠ¤í¬ë¡¤ Barì˜ ê°’ í‘œì‹œí•´ì£¼ê¸°
     WCHAR text[10];
     wsprintf(text, L"%d", thickness );
 	TextOutW(hdc, 640, 75, L"               ", 12);
@@ -764,7 +757,7 @@ void CreateBackPage(HWND hWnd, HINSTANCE hInst, HDC* memDC , HBITMAP* memBitmap)
 POINT Draw(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam,POINT stPos) 
 {
 
-    //½ºÅ©·Ñ BarÀÇ °ª ¹Ş¾Æ¿À±â
+    //ìŠ¤í¬ë¡¤ Barì˜ ê°’ ë°›ì•„ì˜¤ê¸°
     int R = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"R"), SB_CTL);
     int G = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"G"), SB_CTL);
     int B = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"B"), SB_CTL);
@@ -857,7 +850,7 @@ POINT DrawCircle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam) {
 		return stPos;
 }
 
-// Á÷»ç°¢ÇüÀ» ±×¸®´Â ÇÔ¼ö
+// ì§ì‚¬ê°í˜•ì„ ê·¸ë¦¬ëŠ” í•¨ìˆ˜
 POINT  DrawRectangle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam) {
     
         int R = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"R"), SB_CTL);
@@ -886,6 +879,78 @@ POINT  DrawRectangle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam) {
         DeleteObject(newPen);
 		
 		
+		
+		
+		
+		bImageChanged = TRUE;
+		
+		return stPos;
+}
+
+POINT  FillRectangle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam) {
+    
+        int R = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"R"), SB_CTL);
+        int G = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"G"), SB_CTL);
+        int B = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"B"), SB_CTL);
+
+        HPEN newPen = CreatePen(PS_SOLID, 1, RGB(R,G,B));
+		HBRUSH hBrush = CreateSolidBrush(RGB(R,G,B));
+
+        HPEN oldPen = (HPEN)SelectObject(hdc, newPen);
+		HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+        POINT pos;
+        pos.x = GET_X_LPARAM(lParam);
+        pos.y = GET_Y_LPARAM(lParam);
+
+       
+		
+		//TextOut(hdc,100,100,L"test1",5);
+		
+		
+        Rectangle(hdc, stPos.x, stPos.y, pos.x, pos.y);
+
+        SelectObject(hdc, oldPen);
+		SelectObject(hdc, hOldBrush);
+        DeleteObject(newPen);
+		
+		DeleteObject(hBrush);
+		
+		
+		
+		bImageChanged = TRUE;
+		
+		return stPos;
+}
+
+POINT  FillCircle(HWND hWnd, HDC hdc, WPARAM wParam, LPARAM lParam) {
+    
+        int R = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"R"), SB_CTL);
+        int G = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"G"), SB_CTL);
+        int B = GetScrollPos(FindWindowExW(hWnd, NULL, L"scrollbar", L"B"), SB_CTL);
+
+        HPEN newPen = CreatePen(PS_SOLID, 1, RGB(R,G,B));
+		HBRUSH hBrush = CreateSolidBrush(RGB(R,G,B));
+
+        HPEN oldPen = (HPEN)SelectObject(hdc, newPen);
+		HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+        POINT pos;
+        pos.x = GET_X_LPARAM(lParam);
+        pos.y = GET_Y_LPARAM(lParam);
+
+       
+		
+		//TextOut(hdc,100,100,L"test1",5);
+		
+		
+        Ellipse(hdc, stPos.x, stPos.y, pos.x, pos.y);
+
+        SelectObject(hdc, oldPen);
+		SelectObject(hdc, hOldBrush);
+        DeleteObject(newPen);
+		
+		DeleteObject(hBrush);
 		
 		
 		
